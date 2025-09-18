@@ -16,6 +16,7 @@ class MainScene extends Phaser.Scene {
     this.load.image("coins", "/assets/coins.png") 
   }
   create(){
+    //Player 'stats'
     this.player = {
       damage: 2,
       coins: 0
@@ -24,21 +25,22 @@ class MainScene extends Phaser.Scene {
     this.add.image(0, 0, "bg").setOrigin(0,0)
     this.coins = this.physics.add.group()
     this.spawnWasp()
+    this.coinText = this.add.text(55, 55, "Coins: 0", { fontSize: "48px", fill: "#fff"})
   
   }
   spawnWasp() {
     const waspMaxHealth = 10  
-    let waspSprite = this.add.image(464,596.5, "wasp").setOrigin(0,0)
+    let waspSprite = this.add.image(464,396.5, "wasp").setOrigin(0,0)
     waspSprite.setScale(2.3)
     waspSprite.flipX = true
     waspSprite.setInteractive()
     waspSprite.setData("health", waspMaxHealth)
 
-    let waspHealthBarBg = this.makeBar(waspSprite.x, waspSprite.y -30, 0x000000)
+    let waspHealthBarBg = this.makeBar(waspSprite.x - 30, waspSprite.y -30, 0x000000)
     waspHealthBarBg.displayWidth = 200
     waspHealthBarBg.displayWidth = 20
 
-    let waspHealthBar = this.makeBar(waspSprite.x, waspSprite.y -30, 0x2ecc71)
+    let waspHealthBar = this.makeBar(waspSprite.x -30, waspSprite.y -30, 0x2ecc71)
     this.setValue(waspHealthBar, 100) // health bar starts at 100% (5 in this case)
   
     waspSprite.on("pointerdown", () => {
@@ -103,6 +105,7 @@ class MainScene extends Phaser.Scene {
       if(dist<30){
         coin.destroy()
         this.player.coins++
+        this.coinText.setText(`Coins: ${this.player.coins}`)
         console.log(`Coins: ${this.player.coins}`)
       }
     })
