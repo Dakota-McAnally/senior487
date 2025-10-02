@@ -7,15 +7,25 @@
     <title>Realm Defender</title>
   </head>
   <body>
-    <header>
-      <p>Welcome to Realm Defender!</p>
-    </header>
-    <main>
+      <div id="authPage">
+        <h2 id="formTitle">Login</h2>
+        <form id="authForm">
+          <input id="username" placeholder="Username" required />
+          <input id="password" type="password" placeholder="Password" required />
+          <button type="submit" id="submitButton">Login</button>
+        </form>
+        <p>
+          <span id="toggleText">Don't have an account?</span>
+          <button id="toggleButton">Sign Up</button>
+        </p>
+      </div>
+
+    <div id="gamePage" style="display:none;">
       <canvas id="gameCanvas"></canvas>
-    </main>
-    <footer>
+    </div>
+    <!-- <footer>
       <p>Created by Dakota McAnally 2025</p>
-    </footer>
-    <script type="module" src="/src/main.js"></script>
+    </footer> -->
+    <script type ="module" src="/src/login.js"></script>
   </body>
 </html>

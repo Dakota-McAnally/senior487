@@ -12,6 +12,10 @@
     "vite": "^7.1.6"
   },
   "dependencies": {
-    "phaser": "^3.90.0"
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "phaser": "^3.90.0",
+    "sqlite3": "^5.1.7"
   }
 }
