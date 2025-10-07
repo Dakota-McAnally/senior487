@@ -20,9 +20,26 @@
         </p>
       </div>
 
-    <div id="gamePage" style="display:none;">
+    <div id="gamePage" style="display:none">
       <canvas id="gameCanvas"></canvas>
-    </div>
+        <div id="gameUI">
+          <button id="upgradeMenuButton">Upgrades</button>
+        </div>
+
+        <div id="upgradeMenu" style="display:none">
+          <h3>Stat Upgrades</h3>
+          <button id="upgradeCoinMult">
+            Increase Coin Multiplier (Cost: <span id="coinMultCost">150</span>coins) - Level: <span id="coinMultLevel">0</span>
+          </button>
+          <button id="upgradeDPSMult">
+            Increase DPS Multiplier (Cost: <span id="dpsMultCost">100</span> coins) - Level: <span id="dpsMultLevel">0</span>
+          </button>
+          <button id="upgradeClickMult">
+            Increase Click Multiplier (Cost: <span id="clickMultCost">60</span> coins) - Level: <span id="clickMultLevel">0</span>
+          </button>
+          <p id="upgradeMessage"></p>
+        </div>
+      </div>
     <!-- <footer>
       <p>Created by Dakota McAnally 2025</p>
     </footer> -->

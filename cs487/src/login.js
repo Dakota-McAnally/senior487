@@ -15,10 +15,11 @@ toggleButton.addEventListener("click", (e) => {
     formTitle.textContent = isLogin ? "Login" : "Sign Up";
     submitButton.textContent = isLogin ? "Login" : "Sign Up";
     toggleText.textContent = isLogin ? "Don't have an account?" : "Already have an account?";
+    toggleButton.textContent = isLogin ? "Sign Up" : "Login";
 });
 
 async function login(username, password) {
-    console.log("Login button clicked", username, password);
+    console.log("Login button clicked, user: ", username);
     const res = await fetch(`${API_BASE}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
