@@ -46,8 +46,13 @@ authForm.addEventListener("submit", async (e) => {
   if (isLogin) {
     const user = await login(username, password);
     if (!user.error) {
-        window.currentUser = user;
-        startGame(user);  // only login starts game
+        window.currentUser = {
+          username: user.username,
+          userId: user.userId,
+          coins: user.coins,
+          stats: user.stats
+        };
+        startGame(window.currentUser);  // only login starts game
     } 
       
   } else {
@@ -63,8 +68,8 @@ authForm.addEventListener("submit", async (e) => {
 
 // Start Phaser game after successful login/signup
 function startGame(user) {
-    document.getElementById("authPage").style.display = "none";
-    document.getElementById("gamePage").style.display = "block";
+    document.getElementById("authWrapper").style.display = "none";
+    document.getElementById("gameContainer").style.display = "block"
 
     window.currentUser = user;
 

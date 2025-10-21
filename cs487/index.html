@@ -7,42 +7,27 @@
     <title>Realm Defender</title>
   </head>
   <body>
-      <div id="authPage">
-        <h2 id="formTitle">Login</h2>
-        <form id="authForm">
-          <input id="username" placeholder="Username" required />
-          <input id="password" type="password" placeholder="Password" required />
-          <button type="submit" id="submitButton">Login</button>
-        </form>
-        <p>
-          <span id="toggleText">Don't have an account?</span>
-          <button id="toggleButton">Sign Up</button>
-        </p>
-      </div>
-
-    <div id="gamePage" style="display:none">
-      <canvas id="gameCanvas"></canvas>
-        <div id="gameUI">
-          <button id="upgradeMenuButton">Upgrades</button>
-        </div>
-
-        <div id="upgradeMenu" style="display:none">
-          <h3>Stat Upgrades</h3>
-          <button id="upgradeCoinMult">
-            Increase Coin Multiplier (Cost: <span id="coinMultCost">150</span>coins) - Level: <span id="coinMultLevel">0</span>
-          </button>
-          <button id="upgradeDPSMult">
-            Increase DPS Multiplier (Cost: <span id="dpsMultCost">100</span> coins) - Level: <span id="dpsMultLevel">0</span>
-          </button>
-          <button id="upgradeClickMult">
-            Increase Click Multiplier (Cost: <span id="clickMultCost">60</span> coins) - Level: <span id="clickMultLevel">0</span>
-          </button>
-          <p id="upgradeMessage"></p>
-        </div>
-      </div>
-    <!-- <footer>
-      <p>Created by Dakota McAnally 2025</p>
-    </footer> -->
-    <script type ="module" src="/src/login.js"></script>
+  <div id="authWrapper">
+    <div id="authPage">
+      <h2 id="formTitle">Login</h2>
+      <form id="authForm">
+        <input id="username" placeholder="Username" required />
+        <input id="password" type="password" placeholder="Password" required />
+        <button type="submit" id="submitButton">Login</button>
+      </form>
+      <p>
+        <span id="toggleText">Don't have an account?</span>
+        <button id="toggleButton">Sign Up</button>
+      </p>
+    </div>
+  </div>
+  <div id="gameContainer" style="position: relative; width: 928px; height: 793px; margin: 0 auto;">
+    <!-- phaser canvas used here -->
+    <button id="inventoryToggle">Inventory</button>
+    <div id="inventoryUI"></div>
+    <button id="upgradeMenuButton">Upgrade Shop</button>
+    <div id="upgradeMenu" style="display:none"></div>
+  </div>
+  <script type ="module" src="/src/login.js"></script>
   </body>
 </html>
