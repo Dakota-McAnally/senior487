@@ -1,10 +1,22 @@
 import './style.css'
 import Phaser from 'phaser';
+import { addXP, createXPBar, getXPForNextLevel } from './utils/xp.js'
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3001"
 
 //global functions (multiple scenes can/will use)
 export function getUpgradeCost(baseCost, level) {
   return Math.floor(baseCost * Math.pow(1.25, level));
+}
+
+export function recomputeAllUpgradeCosts(player, baseCosts) {
+  if(!player.upgrades) {
+    return
+  }
+  const keys = ["coinMultiplier", "dpsMultiplier", "clickMultiplier",]
+  keys.forEach(k => {
+    const lvl = player.upgrades[k]?.level?? 0
+    player.upgrades[k].cost = getUpgradeCost(baseCosts[k], lvl + 1)
+  })
 }
 
 export function updateInventoryUI(scene) {
@@ -61,10 +73,11 @@ export function startGame(user) {
     height:793
   }
   class Enemy {
-    constructor(scene, x, y, texture, maxHealth = 50) {
+    constructor(scene, x, y, texture, maxHealth = 50, xpReward = null) {
       this.scene = scene
       this.maxHealth = maxHealth
       this.health = maxHealth
+      this.xpReward = xpReward
       //for enemy taking dmg 
       this.lastTintTime = 0
       this.tintCooldown = 400
@@ -182,7 +195,26 @@ export function startGame(user) {
     killEnemy() {
       console.log("Enemy killed")
       this.sprite.disableInteractive()
+      addXP(this.scene.player, "combat", this.xpReward)
+      this.scene.combatXPBar.update(this.scene.player)
       this.scene.coinDrop(this.container.x, this.container.y)
+
+      const xpText = this.scene.add.text(
+        this.container.x + this.sprite.width / 2,
+        this.container.y - 40,
+        `+${this.xpReward} XP`,
+        { fontSize: "16px", color: "#00ff00", fontStyle: "bold" }
+      ).setOrigin(0.5)
+
+      this.scene.tweens.add({
+        targets: xpText,
+        y: xpText.y - 40,
+        alpha: 0,
+        duration: 1000,
+        ease: "Cubic.easeOut",
+        onComplete: () => xpText.destroy()
+      })
+
       this.container.destroy()
 
       const index = this.scene.enemies.indexOf(this)
@@ -190,7 +222,14 @@ export function startGame(user) {
         this.scene.enemies.splice(index, 1)
       }
       this.scene.time.delayedCall(2000, () => {
-        const newEnemy = new Enemy(this.scene, this.container.x, this.container.y, "wasp")
+        const newEnemy = new Enemy(
+          this.scene,
+          this.container.x,
+          this.container.y,
+          "wasp",
+          this.maxHealth,
+          this.xpReward
+        )
         this.scene.enemies.push(newEnemy)
       })
     }
@@ -223,7 +262,14 @@ export function startGame(user) {
             dpsMultiplier: { level: user.stats.dpsMultLevel ?? 0, cost: 100},
             clickMultiplier: { level: user.stats.clickMultLevel ?? 0, cost: 60},
           },
+          skills: {
+            combat : {
+              level: user.stats.combatLevel ?? 1,
+              xp: user.stats.combatXP ?? 0,
+            }
+          }
         }
+        recomputeAllUpgradeCosts(this.player, this.baseCosts)
       }
     }
     preload(){
@@ -259,15 +305,15 @@ export function startGame(user) {
         this.player.upgrades = {
           coinMultiplier: {
             level: user.stats.coinMultLevel ?? 0,
-            cost: getUpgradeCost(this.baseCosts.coinMultiplier, user.stats.coinMultLevel) ?? 0,
+            cost: getUpgradeCost(this.baseCosts.coinMultiplier, (user.stats.coinMultLevel) ?? 0) + 1,
           },
           dpsMultiplier: {
             level: user.stats.dpsMultLevel ?? 0,
-            cost: getUpgradeCost(this.baseCosts.dpsMultiplier, user.stats.dpsMultLevel) ?? 0,
+            cost: getUpgradeCost(this.baseCosts.dpsMultiplier, (user.stats.dpsMultLevel) ?? 0) + 1,
           },
           clickMultiplier: {
             level: user.stats.clickMultLevel ?? 0,
-            cost: getUpgradeCost(this.baseCosts.clickMultiplier, user.stats.clickMultLevel) ?? 0,
+            cost: getUpgradeCost(this.baseCosts.clickMultiplier, (user.stats.clickMultLevel) ?? 0) + 1,
           },
         }
       }
@@ -359,10 +405,11 @@ export function startGame(user) {
 
       //spawn enemy using "Enemy" class
       this.enemies = []
-      const wasp = new Enemy(this, 464, 396.5, "wasp")
+      const wasp = new Enemy(this, 464, 396.5, "wasp", 80, 25)
       this.enemies.push(wasp)
 
-    
+      this.combatXPBar = createXPBar(this, "combat", 0x00ff00, 20)
+      this.combatXPBar.update(this.player)
 
       //DPS function
       this.time.addEvent({
@@ -476,6 +523,8 @@ export function startGame(user) {
             coinMultLevel: this.player.upgrades.coinMultiplier.level,
             dpsMultLevel: this.player.upgrades.dpsMultiplier.level,
             clickMultLevel: this.player.upgrades.clickMultiplier.level,
+            combatLevel: this.player.skills.combat.level,
+            combatXP: this.player.skills.combat.xp
           }
         })
       }).catch(err => console.error("Failed to save coins: ", err))
@@ -541,6 +590,8 @@ export function startGame(user) {
   init(data) {
     // Receive player data from MainScene
     this.player = data.player;
+    recomputeAllUpgradeCosts(this.player, this.baseCosts)
+
   }
 
   create() {
@@ -563,6 +614,8 @@ export function startGame(user) {
               coinMultLevel: this.player.upgrades.coinMultiplier.level,
               dpsMultLevel: this.player.upgrades.dpsMultiplier.level,
               clickMultLevel: this.player.upgrades.clickMultiplier.level,
+              combatLevel: this.player.skills.combat.level,
+              combatXP: this.player.skills.combat.xp
             }
           })
         }).catch(err => console.error("Failed to update upgrades:", err));
@@ -603,7 +656,7 @@ export function startGame(user) {
 
       // Upgrade level and cost text
       const level = this.player.upgrades[upg.key].level
-      const cost = getUpgradeCost(this.baseCosts[upg.key], level)
+      const cost = this.player.upgrades[upg.key].cost
       const costText = this.add.text(x + 110, y + 70, `Level: ${level}\nCost: ${cost} coins`,
         { fontSize: '18px', color: '#ffffff', align: 'center', wordWrap: { width: 200 }, lineSpacing: 4 })
         .setOrigin(0.5, 0)
@@ -629,16 +682,17 @@ export function startGame(user) {
   buyUpgrade(upgradeType) {
     const upgrade = this.player.upgrades[upgradeType];
     const upgradeNames = { coinMultiplier: "Coin Multiplier", dpsMultiplier: "DPS Multiplier", clickMultiplier: "Click Damage Multiplier" };
+    const currentCost = upgrade.cost
 
-    if (this.player.coins < getUpgradeCost(this.player.upgrades[upgradeType].cost, this.player.upgrades[upgradeType].level)) {
+    if (this.player.coins < currentCost) {
       this.upgradeMessage.setText("Not enough coins!");
       return;
     }
 
-    this.player.coins -= getUpgradeCost(this.player.upgrades[upgradeType].cost, this.player.upgrades[upgradeType].level)
+    this.player.coins -= currentCost
     this.player.inventory.coins = this.player.coins
     upgrade.level++;
-    const nextCost = getUpgradeCost(this.baseCosts[upgradeType], upgrade.level)
+    const nextCost = getUpgradeCost(this.baseCosts[upgradeType], upgrade.level + 1)
 
     // Update multipliers
     if (upgradeType === "coinMultiplier") {
@@ -670,6 +724,8 @@ export function startGame(user) {
           coinMultLevel: this.player.upgrades.coinMultiplier.level,
           dpsMultLevel: this.player.upgrades.dpsMultiplier.level,
           clickMultLevel: this.player.upgrades.clickMultiplier.level,
+          combatLevel: this.player.skills.combat.level,
+          combatXP: this.player.skills.combat.xp
         }
       })
     }).catch(err => console.error("Failed to update upgrades:", err));
