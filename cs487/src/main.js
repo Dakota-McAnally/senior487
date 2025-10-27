@@ -72,62 +72,117 @@ export function startGame(user) {
     width:928,
     height:793
   }
+  const MONSTERS = [
+    {
+      name: "wasp",
+      unlockLevel: 0,
+      texture: "wasp",
+      baseHealth: 80,
+      xpReward: 25,
+      coinMultiplier: 1.0,
+      yOffset: -120,
+    },
+    {
+      name: "goblin",
+      unlockLevel: 5,
+      texture: "goblin",
+      baseHealth: 200,
+      xpReward: 40,      
+      coinMultiplier: 1.75,
+      yOffset: 0,
+    },
+    {
+      name: "skeleton",
+      unlockLevel: 10,
+      texture: "skeleton",
+      baseHealth: 320,
+      xpReward: 64,
+      coinMultiplier: 2.85,
+      yOffset: 0,
+    }
+  ]
   class Enemy {
-    constructor(scene, x, y, texture, maxHealth = 50, xpReward = null) {
-      this.scene = scene
-      this.maxHealth = maxHealth
-      this.health = maxHealth
-      this.xpReward = xpReward
-      //for enemy taking dmg 
+    constructor(scene, x, y, texture, maxHealth = 50, xpReward = null, name = "Unknown") {
+      this.scene = scene;
+      this.maxHealth = maxHealth;
+      this.health = maxHealth;
+      this.xpReward = xpReward;
+      this.name = name;
       this.lastTintTime = 0
       this.tintCooldown = 400
 
-      //contains sprite + health bar
-      this.container = scene.add.container(x, y)
-      this.sprite = scene.add.image(0, 0, texture).setOrigin(0,0)
-      this.sprite.setScale(2.3)
-      this.sprite.flipX = true
-      this.sprite.setInteractive()
-      this.container.add(this.sprite)
+      this.container = scene.add.container(x, y + 60);
 
-      //bobbing animation for enemies
-      this.idleTween = scene.tweens.add ({
+      // enemy sprites
+      this.sprite = scene.add.image(0, 0, texture).setOrigin(0.5, 1);
+      this.sprite.setScale(2.3);
+      this.sprite.flipX = true;
+      this.sprite.setInteractive();
+      this.container.add(this.sprite);
+
+      // height of displayed sprite
+      const spriteHeight = this.sprite.displayHeight;
+      const hpBarY = -spriteHeight - 20;     // health bar sits just above the sprite
+      const nameTextY = hpBarY - 25;         // name sits just above HP bar
+
+      // Enemy name text
+      this.nameText = scene.add.text(0, nameTextY, this.name.charAt(0).toUpperCase() + this.name.slice(1), {
+        fontSize: '20px',
+        fill: '#ffff00',
+        fontStyle: 'bold',
+        stroke: '#000000',
+        strokeThickness: 3,
+        align: 'center'
+      }).setOrigin(0.5);
+      this.container.add(this.nameText);
+
+      // Health bar background
+      this.healthBarBg = scene.add.graphics();
+      this.healthBarBg.fillStyle(0xff0000, 1);
+      this.healthBarBg.fillRect(-100, hpBarY, 200, 20);
+      this.container.add(this.healthBarBg);
+
+      // Health bar
+      this.healthBar = scene.add.graphics();
+      this.healthBar.fillStyle(0x2ecc71, 1);
+      this.healthBar.fillRect(-100, hpBarY, 200, 20);
+      this.container.add(this.healthBar);
+
+      // HP text 
+      this.hpText = scene.add.text(0, hpBarY + 10, `${this.health}/${this.maxHealth}`, {
+        fontSize: '16px',
+        fill: '#ffffff',
+        fontStyle: 'bold'
+      }).setOrigin(0.5);
+      this.container.add(this.hpText);
+
+      // Bobbing animation
+      this.idleTween = scene.tweens.add({
         targets: this.container,
         y: this.container.y - 10,
         duration: 1000,
         yoyo: true,
         repeat: -1,
         ease: "Sine.easeInOut"
-      })
-      //health bar background -> red, floating just above enemy sprite
-      this.healthBarBg = scene.add.graphics()
-      this.healthBarBg.fillStyle(0xFF0000, 1)
-      this.healthBarBg.fillRect(0, 0, 200, 20)
-      this.healthBarBg.x = -30
-      this.healthBarBg.y = -30
-      this.container.add(this.healthBarBg)
-      //health bar -> what "depletes" when damage is applied
-      this.healthBar = scene.add.graphics()
-      this.healthBar.fillStyle(0x2ecc71, 1)
-      this.healthBar.fillRect(0,0,200,20)
-      this.healthBar.x = -30
-      this.healthBar.y = -30
-      scene.setValue(this.healthBar, 100)
-      this.container.add(this.healthBar)
-      //adds text to hp bar
-      this.hpText = this.scene.add.text(
-        50,
-        -27.5,
-        `${this.health}/${this.maxHealth}`,
-        { fontSize: '16px', fill: '#fff', fontStyle: 'bold' }
-      )
-      this.container.add(this.hpText)
-      //on click multiplier -> reward active play with increased dps multiplier
-      this.sprite.on("pointerdown", () => {
-        this.takeDamage(scene.getClickDamage())
-      })
-    }
+      });
 
+      this.sprite.on("pointerdown", () => {
+        this.takeDamage(scene.getClickDamage());
+      });
+    }
+    updateHealthBar() {
+      const hpBarY = -this.sprite.displayHeight - 20;
+      const maxWidth = 200;
+      const percent = Phaser.Math.Clamp(this.health / this.maxHealth, 0, 1);
+      const filledWidth = maxWidth * percent;
+
+      // Redraw the green HP bar only
+      this.healthBar.clear();
+      this.healthBar.fillStyle(0x2ecc71, 1);
+
+      // Draw from left edge, fixed width background
+      this.healthBar.fillRect(-100, hpBarY, filledWidth, 20);
+    }
     showDamage(amount) {
       const dmgText = this.scene.add.text(
         this.sprite.x + 50,
@@ -153,8 +208,7 @@ export function startGame(user) {
       this.health = Math.max(this.health, 0)
       this.health = parseFloat(this.health.toFixed(2))
       //update hp bar
-      const percent = Phaser.Math.Clamp((this.health / this.maxHealth) * 100, 0, 100)
-      this.scene.setValue(this.healthBar, percent)
+      this.updateHealthBar()
       //update hp bar text
       this.hpText.setText(`${Math.round(this.health)}/${this.maxHealth}`)
       //damage numbers
@@ -195,7 +249,11 @@ export function startGame(user) {
     killEnemy() {
       console.log("Enemy killed")
       this.sprite.disableInteractive()
-      addXP(this.scene.player, "combat", this.xpReward)
+      const result = addXP(this.scene.player, "combat", this.xpReward, this.scene, this.scene.combatXPBar.update.bind(this.scene.combatXPBar), MONSTERS)
+      if (result.leveledUp && result.unlocked) {
+        console.log(`Unlocked new monster: ${result.unlocked}`)
+        this.spawnNewMonster(result.unlocked)
+      }
       this.scene.combatXPBar.update(this.scene.player)
       this.scene.coinDrop(this.container.x, this.container.y)
 
@@ -222,13 +280,15 @@ export function startGame(user) {
         this.scene.enemies.splice(index, 1)
       }
       this.scene.time.delayedCall(2000, () => {
+        const monster = this.scene.getCurrentMonsterType() 
         const newEnemy = new Enemy(
           this.scene,
           this.container.x,
-          this.container.y,
-          "wasp",
-          this.maxHealth,
-          this.xpReward
+          this.scene.groundY + (monster.yOffset ?? 0),
+          monster.texture,
+          monster.baseHealth,
+          monster.xpReward,
+          monster.name,
         )
         this.scene.enemies.push(newEnemy)
       })
@@ -277,9 +337,12 @@ export function startGame(user) {
       this.load.image("bg", "/assets/Background.png")
       this.load.image("wasp", "/assets/wasp.png")
       this.load.image("coins", "/assets/coins.png") 
+      this.load.image("goblin", "/assets/goblin.png")
+      this.load.image("skeleton", "/assets/skeleton.png")
     }
 
     create(){
+      this.groundY = 670
       //events
       this.events.on("coinsUpdated", (newCointAmount) => {
         this.player.coins = newCointAmount
@@ -402,11 +465,21 @@ export function startGame(user) {
       // document.getElementById("upgradeDPSMult").onclick = () => this.buyUpgrade("dpsMultiplier")
       // document.getElementById("upgradeClickMult").onclick = () => this.buyUpgrade("clickMultiplier")
 
-
       //spawn enemy using "Enemy" class
-      this.enemies = []
-      const wasp = new Enemy(this, 464, 396.5, "wasp", 80, 25)
-      this.enemies.push(wasp)
+      if(!this.enemies) {
+        this.enemies = []
+      }
+      const monster = this.getCurrentMonsterType()
+      const enemy = new Enemy(
+        this,
+        464,
+        this.groundY + (monster.yOffset ?? 0),
+        monster.texture,
+        monster.baseHealth,
+        monster.xpReward,
+        monster.name
+      )
+      this.enemies.push(enemy)
 
       this.combatXPBar = createXPBar(this, "combat", 0x00ff00, 20)
       this.combatXPBar.update(this.player)
@@ -426,7 +499,30 @@ export function startGame(user) {
       })
     
     }
+    spawnNewMonster(monsterName) {
+      // Remove old enemies
+      this.enemies.forEach(e => e.container.destroy());
+      this.enemies = [];
 
+      const monsterData = this.monsters.find(m => m.name === monsterName);
+      if (!monsterData) return;
+
+      const newEnemy = new Enemy(this, 464, 396.5, monsterData.texture,
+        monsterData.maxHealth, monsterData.xpReward);
+      this.enemies.push(newEnemy);
+      console.log(`${monsterName} spawned!`);
+    }
+    //retrieves current monster type (Depends on players combat lvl)
+    getCurrentMonsterType() {
+      const level = this.player.skills.combat.level
+      let current = MONSTERS[0]
+      for (const m of MONSTERS) {
+        if (level >= m.unlockLevel) {
+          current = m
+        }
+      }
+      return current
+    }
     // buyUpgrade(upgradeType) {
     //   const upgrade = this.player.upgrades[upgradeType]
     //   const upgradeNames = {
@@ -485,7 +581,8 @@ export function startGame(user) {
     }
     //sets the value of the hp bar as a percentage
     setValue(bar, percentage) {
-      bar.scaleX = percentage / 100
+      bar.scaleX = Phaser.Math.Clamp(percentage / 100, 0, 1)
+      bar.x = -100
     }
     //coin "+X" text
     showCoinText(x, y, text, color = "#ffffff") {
@@ -506,7 +603,9 @@ export function startGame(user) {
       if (!coin.active) return
 
       coin.destroy()
-      const coinsGained = Math.floor(15 * this.player.coinMultiplier)
+      const monster = this.getCurrentMonsterType()
+      const baseCoinValue = 15 * monster.coinMultiplier
+      const coinsGained = Math.floor(baseCoinValue * this.player.coinMultiplier)
       this.player.coins += coinsGained
       this.player.inventory.coins = this.player.coins
       updateInventoryUI(this)

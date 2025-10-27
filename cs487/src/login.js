@@ -4,6 +4,7 @@ const toggleButton = document.getElementById("toggleButton")
 const formTitle = document.getElementById("formTitle")
 const submitButton = document.getElementById("submitButton")
 const toggleText = document.getElementById("toggleText")
+const authMessage = document.getElementById("authMessage")
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3001"
 
@@ -40,31 +41,42 @@ async function signup(username, password) {
 //Login/Signup
 authForm.addEventListener("submit", async (e) => {
   e.preventDefault();
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  if (!username || !password) {
+    showAuthMessage("Please fill out all fields.", "error");
+    return;
+  }
 
   if (isLogin) {
     const user = await login(username, password);
-    if (!user.error) {
-        window.currentUser = {
-          username: user.username,
-          userId: user.userId,
-          coins: user.coins,
-          stats: user.stats
-        };
-        startGame(window.currentUser);  // only login starts game
-    } 
-      
+    if (user.error) {
+      showAuthMessage(user.error, "error");
+    } else {
+      showAuthMessage("Login successful! Loading game...", "success");
+      setTimeout(() => startGame(user), 800);
+    }
   } else {
     const result = await signup(username, password);
     if (result.error) {
-      alert(result.error);
+      showAuthMessage(result.error, "error");
     } else {
-      alert("Sign up successful! Please log in.");
-      toggleButton.click();
+      showAuthMessage("Sign up successful! Please log in.", "success");
+      setTimeout(() => toggleButton.click(), 1000);
     }
   }
 });
+
+function showAuthMessage(message, type = "info") {
+  authMessage.textContent = message;
+  authMessage.className = "auth-message"; 
+  if (type === "error") {
+    authMessage.classList.add("error");
+  } else if (type === "success") authMessage.classList.add("success"); {
+      authMessage.style.opacity = message ? 1 : 0;
+  }
+}
 
 // Start Phaser game after successful login/signup
 function startGame(user) {

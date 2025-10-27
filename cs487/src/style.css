@@ -72,6 +72,20 @@ body {
   color: #bbb;
 }
 
+.auth-message {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 16px;
+  transition: opacity 0.4s ease;
+  opacity: 0;
+}
+.auth-message.error {
+  color: #ff5555;
+}
+.auth-message.success {
+  color: #33ff88;
+}
+
 #submitButton {
   width: 100%;
   padding: 12px 0;

@@ -20,7 +20,8 @@ db.run(`CREATE TABLE IF NOT EXISTS users (
 //user_stats table
 db.run(`CREATE TABLE IF NOT EXISTS user_stats (
     user_id INTEGER PRIMARY KEY,
-    combatLevel INTEGER DEFAULT 0,
+    combatLevel INTEGER DEFAULT 1,
+    combatXP INTEGER DEFAULT 0,
     coinMultLevel INTEGER DEFAULT 0,
     dpsMultLevel INTEGER DEFAULT 0,
     clickMultLevel INTEGER DEFAULT 0,
@@ -53,6 +54,29 @@ db.run(`CREATE TABLE IF NOT EXISTS user_inventory (
     FOREIGN KEY(item_id) REFERENCES items(item_id) ON DELETE CASCADE
 
 )`);
+
+const REQUIRED_ITEMS = ["Coin", "Logs", "Ore", "Axe", "Pickaxe", "Sword"];
+
+function ensureBaseItemsExist() {
+    REQUIRED_ITEMS.forEach((itemName) => {
+        db.get(`SELECT item_id FROM items WHERE name = ?`, [itemName], (err, row) => {
+            if (err) {
+                console.error("Error checking item:", itemName, err);
+                return;
+            }
+            if (!row) {
+                db.run(`INSERT INTO items (name) VALUES (?)`, [itemName], (insertErr) => {
+                    if (insertErr) {
+                        console.error("Failed to insert missing item:", itemName, insertErr);
+                    } else {
+                        console.log(`Inserted missing item: ${itemName}`);
+                    }
+                });
+            }
+        });
+    });
+}
+ensureBaseItemsExist();
 
 //Signup
 app.post("/signup", async (req, res) => {
@@ -111,6 +135,7 @@ app.post("/login", (req, res) => {
                             coins,
                             stats: {
                                 combatLevel: statsRow.combatLevel,
+                                combatXP: statsRow.combatXP,
                                 coinMultLevel: statsRow.coinMultLevel,
                                 dpsMultLevel: statsRow.dpsMultLevel,
                                 clickMultLevel: statsRow.clickMultLevel,
@@ -155,6 +180,7 @@ app.post("/saveProgress", (req, res) => {
 
         const {
             combatLevel,
+            combatXP,
             coinMultLevel,
             dpsMultLevel,
             clickMultLevel,
@@ -165,18 +191,18 @@ app.post("/saveProgress", (req, res) => {
             woodcuttingLevel,
             logMultLevel,
             logDpsMultLevel,
-            logClickMultLevel
+            logClickMultLevel,
         } = stats;
 
         //update user_stats
         db.run(
             `UPDATE user_stats
-            SET combatLevel = ?, coinMultLevel = ?, dpsMultLevel = ?, clickMultLevel = ?,
+            SET combatLevel = ?, combatXP = ?, coinMultLevel = ?, dpsMultLevel = ?, clickMultLevel = ?,
             miningLevel = ?, oreMultLevel = ?, oreDpsMultLevel = ?, oreClickMultLevel = ?,
             woodcuttingLevel = ?, logMultLevel = ?, logDpsMultLevel = ?, logClickMultLevel = ?
             WHERE user_id = ?`,
             [
-                combatLevel, coinMultLevel, dpsMultLevel, clickMultLevel,
+                combatLevel, combatXP, coinMultLevel, dpsMultLevel, clickMultLevel,
                 miningLevel, oreMultLevel, oreDpsMultLevel, oreClickMultLevel,
                 woodcuttingLevel, logMultLevel, logDpsMultLevel, logClickMultLevel,
                 user.id

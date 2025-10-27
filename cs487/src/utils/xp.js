@@ -1,11 +1,13 @@
 import Phaser from 'phaser';
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3001"
 
 export function getXPForNextLevel(level) {
     return Math.floor(50 * Math.pow(level, 1.5))
 }
 
-export function addXP(player, skill, amount, updateUI) {
+export function addXP(player, skill, amount, scene, updateUI, monsters =[]) {
     const skillData = player.skills[skill]
+    const prevLevel = skillData.level
     skillData.xp += amount
 
     while(skillData.xp >= getXPForNextLevel(skillData.level)) {
@@ -13,6 +15,31 @@ export function addXP(player, skill, amount, updateUI) {
         skillData.level++
         console.log(`${skill} leveled up! Now level ${skillData.level}`)
     }
+    let unlockedName = null
+    const leveledUp = skillData.level > prevLevel
+    if (leveledUp && scene && skill === "combat" && monsters.length > 0) {
+      const unlockedName = getUnlockedMonsterName(skillData.level, monsters)
+      if (unlockedName) {
+        console.log(`Unlocked new monster: ${unlockedName}`)
+        showUnlockNotification(scene, "Combat", unlockedName);
+      }
+    }
+    fetch(`${API_BASE}/saveProgress`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            username: player.username,
+            coins: Math.floor(player.coins),
+            stats: {
+                coinMultLevel: player.upgrades.coinMultiplier.level,
+                dpsMultLevel: player.upgrades.dpsMultiplier.level,
+                clickMultLevel: player.upgrades.clickMultiplier.level,
+                combatLevel: player.skills.combat.level,
+                combatXP: player.skills.combat.xp
+            }
+        })
+    }).catch(err => console.error("Failed to save coins: ", err))
+    return { leveledUp, unlocked: unlockedName }
 }
 
 export function createXPBar(scene, skillName, color = 0x00ff00, y = 20) {
@@ -36,5 +63,41 @@ export function createXPBar(scene, skillName, color = 0x00ff00, y = 20) {
 
         }
     }
+}
+
+export function showUnlockNotification(scene, skill, unlockedEntity) {
+    const formattedName = unlockedEntity.charAt(0).toUpperCase() + unlockedEntity.slice(1)
+    const bg = scene.add.rectangle(464, 396, 600, 200, 0x000000, 0.7)
+    .setStrokeStyle(3, 0xffff00)
+    .setDepth(999)
+    .setOrigin(0.5)
+
+    const text = scene.add.text(464, 396, `${skill} Level Up!`,
+        { fontSize: '32px', color: '#ffff00', fontStyle: 'bold', align: 'center' })
+        .setOrigin(0.5)
+        .setDepth(1000)
+    const subText = scene.add.text(464, 440, `New ${skill === "Combat" ? "Enemy" : "Resource"} Unlocked: ${formattedName}`,
+    { fontSize: '20px', color: '#ffffff', align: 'center' })
+    .setOrigin(0.5)
+    .setDepth(1000)
+
+    scene.tweens.add({
+        targets: [bg, text, subText],
+        alpha: { from: 0, to: 1 },
+        duration: 400,
+        yoyo: true,
+        hold: 2000,
+        ease: 'Sine.easeInOut',
+        onComplete: () => {
+            bg.destroy()
+            text.destroy()
+            subText.destroy()
+        }
+    })
+}
+
+export function getUnlockedMonsterName(level, monsters) {
+    const unlocked = monsters.find(m=> m.unlockLevel === level)
+    return unlocked ? unlocked.name : null
 }
 
