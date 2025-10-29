@@ -5,7 +5,7 @@ export function getXPForNextLevel(level) {
     return Math.floor(50 * Math.pow(level, 1.5))
 }
 
-export function addXP(player, skill, amount, scene, updateUI, monsters =[]) {
+export function addXP(player, skill, amount, scene, updateUI, monsters = [], ores = []) {
     const skillData = player.skills[skill]
     const prevLevel = skillData.level
     skillData.xp += amount
@@ -16,6 +16,7 @@ export function addXP(player, skill, amount, scene, updateUI, monsters =[]) {
         console.log(`${skill} leveled up! Now level ${skillData.level}`)
     }
     let unlockedName = null
+    //combat unlock notification
     const leveledUp = skillData.level > prevLevel
     if (leveledUp && scene && skill === "combat" && monsters.length > 0) {
       const unlockedName = getUnlockedMonsterName(skillData.level, monsters)
@@ -23,6 +24,16 @@ export function addXP(player, skill, amount, scene, updateUI, monsters =[]) {
         console.log(`Unlocked new monster: ${unlockedName}`)
         showUnlockNotification(scene, "Combat", unlockedName);
       }
+    }
+    //mining unlock notification
+    if (leveledUp && scene && skill === "mining" && ores.length > 0) {
+        const unlockedName = getUnlockedOreName(skillData.level, ores);
+        if (unlockedName) {
+            showUnlockNotification(scene, "Mining", unlockedName);
+        }
+    }
+    if(updateUI) {
+        updateUI(player)
     }
     fetch(`${API_BASE}/saveProgress`, {
         method: "POST",
@@ -35,7 +46,9 @@ export function addXP(player, skill, amount, scene, updateUI, monsters =[]) {
                 dpsMultLevel: player.upgrades.dpsMultiplier.level,
                 clickMultLevel: player.upgrades.clickMultiplier.level,
                 combatLevel: player.skills.combat.level,
-                combatXP: player.skills.combat.xp
+                combatXP: player.skills.combat.xp,
+                miningLevel: player.skills.mining.level,
+                miningXP: player.skills.mining.xp
             }
         })
     }).catch(err => console.error("Failed to save coins: ", err))
@@ -98,6 +111,10 @@ export function showUnlockNotification(scene, skill, unlockedEntity) {
 
 export function getUnlockedMonsterName(level, monsters) {
     const unlocked = monsters.find(m=> m.unlockLevel === level)
+    return unlocked ? unlocked.name : null
+}
+export function getUnlockedOreName(level, ores) {
+    const unlocked = ores.find(o => o.unlockLevel === level)
     return unlocked ? unlocked.name : null
 }
 

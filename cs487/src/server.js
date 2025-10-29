@@ -25,7 +25,8 @@ db.run(`CREATE TABLE IF NOT EXISTS user_stats (
     coinMultLevel INTEGER DEFAULT 0,
     dpsMultLevel INTEGER DEFAULT 0,
     clickMultLevel INTEGER DEFAULT 0,
-    miningLevel INTEGER DEFAULT 0,
+    miningLevel INTEGER DEFAULT 1,
+    miningXP INTEGER DEFAULT 0,
     oreMultLevel INTEGER DEFAULT 0,
     oreDpsMultLevel INTEGER DEFAULT 0,
     oreClickMultLevel INTEGER DEFAULT 0,
@@ -55,7 +56,7 @@ db.run(`CREATE TABLE IF NOT EXISTS user_inventory (
 
 )`);
 
-const REQUIRED_ITEMS = ["Coin", "Logs", "Ore", "Axe", "Pickaxe", "Sword"];
+const REQUIRED_ITEMS = ["Coin", "Logs", "Copper Ore", "Iron Ore", "Gold Ore", "Axe", "Pickaxe", "Sword"];
 
 function ensureBaseItemsExist() {
     REQUIRED_ITEMS.forEach((itemName) => {
@@ -76,7 +77,7 @@ function ensureBaseItemsExist() {
         });
     });
 }
-ensureBaseItemsExist();
+setTimeout(ensureBaseItemsExist, 200);
 
 //Signup
 app.post("/signup", async (req, res) => {
@@ -104,177 +105,151 @@ app.post("/signup", async (req, res) => {
 
 //Login
 app.post("/login", (req, res) => {
-    const { username, password } = req.body;
+  const { username, password } = req.body;
 
-    db.get(`SELECT * FROM users WHERE username = ?`, [username],
-        async (err, userRow) => {
-            if (!userRow) {
-                return res.status(400).json({ error: "Invalid Username" });
-            }
-            const match = await bcrypt.compare(password, userRow.password_hash);
-            if (!match) {
-                return res.status(400).json({ error: "Invalid Password" });
-            }
+  db.get(`SELECT * FROM users WHERE username = ?`, [username], async (err, userRow) => {
+    if (err) return res.status(500).json({ error: "Database error" });
+    if (!userRow) return res.status(400).json({ error: "Invalid Username" });
 
-            db.get(`SELECT * FROM user_stats WHERE user_id = ?`, [userRow.id], (err2, statsRow) => {
-                if (err2 || !statsRow) {
-                    console.error("User stats fetching error:", err2);
-                    return res.status(500).json({ error: "Error loading stats" });
-                }
+    const match = await bcrypt.compare(password, userRow.password_hash);
+    if (!match) return res.status(400).json({ error: "Invalid Password" });
 
-                //get coins from user_inventory
-                db.get(
-                    `SELECT quantity FROM user_inventory WHERE user_id = ? AND item_id = (SELECT item_id FROM items WHERE name = 'Coin')`,
-                    [userRow.id],
-                    (err3, coinRow) => {
-                        const coins = coinRow ? coinRow.quantity : 0;
-                        res.json({
-                            success: true,
-                            username: userRow.username,
-                            userId: userRow.id,
-                            coins,
-                            stats: {
-                                combatLevel: statsRow.combatLevel,
-                                combatXP: statsRow.combatXP,
-                                coinMultLevel: statsRow.coinMultLevel,
-                                dpsMultLevel: statsRow.dpsMultLevel,
-                                clickMultLevel: statsRow.clickMultLevel,
-                                miningLevel: statsRow.miningLevel,
-                                oreMultLevel: statsRow.oreMultLevel,
-                                oreDpsMultLevel: statsRow.oreDpsMultLevel,
-                                oreClickMultLevel: statsRow.oreClickMultLevel,
-                                woodcuttingLevel: statsRow.woodcuttingLevel,
-                                logMultLevel: statsRow.logMultLevel,
-                                logDpsMultLevel: statsRow.logDpsMultLevel,
-                                logClickMultLevel: statsRow.logClickMultLevel
-                            }
-                        });
-                    }
-                );
-            });
+    db.get(`SELECT * FROM user_stats WHERE user_id = ?`, [userRow.id], (err2, stats) => {
+      if (err2 || !stats) return res.status(500).json({ error: "Stats not found" });
+
+      db.all(
+        `SELECT i.name, ui.quantity FROM user_inventory ui
+         JOIN items i ON i.item_id = ui.item_id
+         WHERE ui.user_id = ?`,
+        [userRow.id],
+        (err3, rows) => {
+          if (err3) return res.status(500).json({ error: "Failed to load inventory" });
+
+          // Convert DB item names (e.g. "Copper Ore") -> camelCase (e.g. copperOre)
+          const toCamel = (str) =>
+            str.replace(/\s(.)/g, (m) => m.toUpperCase())
+               .replace(/\s/g, "")
+               .replace(/^./, (m) => m.toLowerCase());
+
+          const inventory = {};
+          rows.forEach(r => {
+            inventory[toCamel(r.name)] = r.quantity;
+          });
+
+          res.json({
+            success: true,
+            username: userRow.username,
+            userId: userRow.id,
+            stats,
+            inventory
+          });
         }
-    );
+      );
+    });
+  });
 });
 
-// //save coins
-// app.post("/saveCoins", (req, res) => {
-//   const { username, coins } = req.body;
 
-//   db.run(`UPDATE users SET coins = ? WHERE username = ?`, [coins, username], function (err) {
-//     if (err) 
-//         return res.status(500).json({ error: "Failed to update coins" });
-//     res.json({ success: true });
-//   });
-// });
-
-//save stats + items 
+// SAVE PROGRESS 
 app.post("/saveProgress", (req, res) => {
+  const { username, stats, inventory } = req.body;
+
+  db.get(`SELECT id FROM users WHERE username = ?`, [username], (err, user) => {
+    if (err || !user) return res.status(400).json({ error: "User not found" });
+
     const {
-        username,
-        stats,
-        coins
-    } = req.body;
+      combatLevel, combatXP, coinMultLevel, dpsMultLevel, clickMultLevel,
+      miningLevel, miningXP, oreMultLevel, oreDpsMultLevel, oreClickMultLevel,
+      woodcuttingLevel, logMultLevel, logDpsMultLevel, logClickMultLevel
+    } = stats;
 
-    db.get(`SELECT id FROM users WHERE username = ?`, [username], (err, user) => {
-        if (err || !user) return res.status(400).json({ error: "User not found" });
+    db.run(
+      `UPDATE user_stats
+       SET combatLevel=?, combatXP=?, coinMultLevel=?, dpsMultLevel=?, clickMultLevel=?,
+           miningLevel=?, miningXP=?, oreMultLevel=?, oreDpsMultLevel=?, oreClickMultLevel=?,
+           woodcuttingLevel=?, logMultLevel=?, logDpsMultLevel=?, logClickMultLevel=?
+       WHERE user_id=?`,
+      [
+        combatLevel ?? 1, combatXP ?? 0, coinMultLevel ?? 0, dpsMultLevel ?? 0, clickMultLevel ?? 0,
+        miningLevel ?? 1, miningXP ?? 0, oreMultLevel ?? 0, oreDpsMultLevel ?? 0, oreClickMultLevel ?? 0,
+        woodcuttingLevel ?? 0, logMultLevel ?? 0, logDpsMultLevel ?? 0, logClickMultLevel ?? 0,
+        user.id
+      ],
+      (err2) => {
+        if (err2) {
+          console.error("Stats update error:", err2);
+          return res.status(500).json({ error: "Failed to update stats" });
+        }
 
-        const {
-            combatLevel,
-            combatXP,
-            coinMultLevel,
-            dpsMultLevel,
-            clickMultLevel,
-            miningLevel,
-            oreMultLevel,
-            oreDpsMultLevel,
-            oreClickMultLevel,
-            woodcuttingLevel,
-            logMultLevel,
-            logDpsMultLevel,
-            logClickMultLevel,
-        } = stats;
+        // ITEM MAPPING (camelCase -> DB names)
+        const itemMap = {
+          coins: "Coin",
+          copperOre: "Copper Ore",
+          ironOre: "Iron Ore",
+          goldOre: "Gold Ore",
+          logs: "Logs",
+          axe: "Axe",
+          pickaxe: "Pickaxe",
+          sword: "Sword"
+        };
 
-        //update user_stats
-        db.run(
-            `UPDATE user_stats
-            SET combatLevel = ?, combatXP = ?, coinMultLevel = ?, dpsMultLevel = ?, clickMultLevel = ?,
-            miningLevel = ?, oreMultLevel = ?, oreDpsMultLevel = ?, oreClickMultLevel = ?,
-            woodcuttingLevel = ?, logMultLevel = ?, logDpsMultLevel = ?, logClickMultLevel = ?
-            WHERE user_id = ?`,
-            [
-                combatLevel, combatXP, coinMultLevel, dpsMultLevel, clickMultLevel,
-                miningLevel, oreMultLevel, oreDpsMultLevel, oreClickMultLevel,
-                woodcuttingLevel, logMultLevel, logDpsMultLevel, logClickMultLevel,
-                user.id
-            ],
-            function (err2) {
-                if (err2) {
-                    console.error("Progress save error:", err2);
-                    return res.status(500).json({ error: "Failed to save user stats" });
+        const items = Object.entries(inventory || {});
+        const processItem = (index = 0) => {
+          if (index >= items.length) return res.json({ success: true });
+
+          const [key, quantity] = items[index];
+          const dbName = itemMap[key];
+          if (!dbName) {
+            console.warn(`Skipping unmapped item: ${key}`);
+            return processItem(index + 1);
+          }
+
+          db.get(`SELECT item_id FROM items WHERE name = ?`, [dbName], (err3, itemRow) => {
+            if (err3 || !itemRow) {
+              console.error(`Item lookup failed for ${dbName}:`, err3);
+              return processItem(index + 1);
+            }
+
+            db.get(
+              `SELECT id FROM user_inventory WHERE user_id=? AND item_id=?`,
+              [user.id, itemRow.item_id],
+              (err4, invRow) => {
+                if (err4) {
+                  console.error(`Inventory lookup failed for ${dbName}:`, err4);
+                  return processItem(index + 1);
                 }
 
-                //coins are in user_inventory instead of a player "stat", as the previous DB had them
-                db.get(
-                    `SELECT id, quantity FROM user_inventory
-                    WHERE user_id = ? AND item_id = (
-                    SELECT item_id FROM items WHERE name = 'Coin'
-                    )`,
-                    [user.id],
-                    (err3, existingCoinRow) => {
-                        if (err3) {
-                            console.error("Coin lookup error:", err3);
-                            return res.status(500).json({ error: "Coin lookup failed" });
-                        }
-
-                        //if coin item exists, update quantity
-                        if (existingCoinRow) {
-                            db.run(
-                                `UPDATE user_inventory SET quantity = ? WHERE id = ?`,
-                                [coins, existingCoinRow.id],
-                                function (err4) {
-                                    if (err4) {
-                                        console.error("Coin update error:", err4);
-                                        return res.status(500).json({ error: "Failed to update coins" });
-                                    }
-                                    res.json({ success: true });
-                                }
-                            );
-                        }
-                        //if no coin item exists, insert it
-                        else {
-                            db.get(
-                                `SELECT item_id FROM items WHERE name = 'Coin'`,
-                                [],
-                                (err5, coinItem) => {
-                                    if (err5 || !coinItem) {
-                                        console.error("Coin item not found:", err5);
-                                        return res.status(500).json({ error: "Coin item missing in items table" });
-                                    }
-
-                                    db.run(
-                                        `INSERT INTO user_inventory (user_id, item_id, quantity) VALUES (?, ?, ?)`,
-                                        [user.id, coinItem.item_id, coins],
-                                        function (err6) {
-                                            if (err6) {
-                                                console.error("Coin insert error:", err6);
-                                                return res.status(500).json({ error: "Failed to insert coin item" });
-                                            }
-                                            res.json({ success: true });
-                                        }
-                                    );
-                                }
-                            );
-                        }
+                if (invRow) {
+                  db.run(
+                    `UPDATE user_inventory SET quantity=? WHERE id=?`,
+                    [quantity, invRow.id],
+                    (err5) => {
+                      if (err5) console.error(`Failed to update ${dbName}:`, err5);
+                      processItem(index + 1);
                     }
-                );
-            }
-        );
-    });
+                  );
+                } else {
+                  db.run(
+                    `INSERT INTO user_inventory (user_id, item_id, quantity) VALUES (?, ?, ?)`,
+                    [user.id, itemRow.item_id, quantity],
+                    (err6) => {
+                      if (err6) console.error(`Failed to insert ${dbName}:`, err6);
+                      processItem(index + 1);
+                    }
+                  );
+                }
+              }
+            );
+          });
+        };
+        processItem();
+      }
+    );
+  });
 });
 
 app.listen(3001, () => {
     console.log("Server running on port 3001")
 })
-
 
 

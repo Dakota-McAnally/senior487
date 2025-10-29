@@ -1,0 +1,11 @@
+Make 3 ore types useful --> there cant be copper ore that becomes obsolete, because whats the point of adding it --> Maybe the player can choose which ore to mine? 
+
+Upgrade Shop should reflect Ore related upgrades costing Ore, not coins
+
+Upgrade Shop should allow players to buy ore upgrades and actually apply --> and persist level/cost to DB
+
+Implement some form of crafting --> Player can craft sword/pickaxe using coins + ore (copper -> iron -> gold)
+
+Each tool/weapon should have a base damage value that is used instead of player.dps (mining and combat use the same right now, shouldnt be the case)
+
+Add tooltips to the things that need explaining (Upgrades/Crafting/Tools/Inventory Items?)
