@@ -69,17 +69,24 @@ export function setupGlobalButtons(game) {
             const currentScene = game.scene.keys[currentKey];
             const player = window.currentUser;
 
-            // Record where we came from (so Shop knows what to return to)
+            // Remember last scene for Shop return
             if (player) player.lastScene = currentKey;
 
-            // Stop the current scene cleanly
-            if (currentScene && currentScene.scene) {
+            // Smooth fade-out transition
+            if (currentScene && currentScene.cameras && currentScene.cameras.main) {
+                currentScene.cameras.main.fadeOut(250, 0, 0, 0);
+                currentScene.cameras.main.once('camerafadeoutcomplete', () => {
+                    if (typeof currentScene.shutdown === "function") currentScene.shutdown();
+                    currentScene.scene.stop();
+                    game.scene.start(targetScene, { player });
+                });
+            } else {
+                // fallback (no camera)
                 if (typeof currentScene.shutdown === "function") currentScene.shutdown();
                 currentScene.scene.stop();
+                game.scene.start(targetScene, { player });
             }
 
-            // Start the next scene with full player data
-            game.scene.start(targetScene, { player });
         };
     };
 
@@ -101,7 +108,7 @@ export function setupGlobalButtons(game) {
     // When any scene starts or wakes up, reapply button visibility
     game.events.on("scenestart", (scene) => {
         if (!scene || !scene.scene) return;
-        showUI(scene.scene.key);
+        scene.time.delayedCall(300, () => showUI(scene.scene.key))
     });
 
     game.events.on("sceneawaken", (scene) => {

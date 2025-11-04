@@ -19,7 +19,7 @@ const ORES = [
         name: "iron",
         unlockLevel: 5,
         texture: "ironOre",
-        nodeHealth: 250,
+        nodeHealth: 290,
         xpReward: 60,
         oreMultiplier: 1.85
     },
@@ -27,7 +27,7 @@ const ORES = [
         name: "gold",
         unlockLevel: 10,
         texture: "goldOre",
-        nodeHealth: 450,
+        nodeHealth: 680,
         xpReward: 120,
         oreMultiplier: 2.85
     }
@@ -90,6 +90,14 @@ export class MiningScene extends Phaser.Scene {
         // XP bar
         this.miningXPBar = createXPBar(this, "mining", 0x9999ff, 20)
         this.miningXPBar.update(this.player)
+        // Scene title
+        this.add.text(464, 60, "Bountiful Cave", {
+            fontSize: "32px",
+            color: "#ffffcc",
+            fontStyle: "bold",
+            stroke: "#000000",
+            strokeThickness: 3
+        }).setOrigin(0.5);
         //Ore selection buttons
         this.orePanel = this.add.container(464, 120)
         this.createOreIcons()
@@ -106,6 +114,7 @@ export class MiningScene extends Phaser.Scene {
             }
         })
         this.miningXPBar.update(this.player)
+        this.cameras.main.fadeIn(300, 0, 0, 0)
     }
     update() {
         const pointer = this.input.activePointer
@@ -335,7 +344,7 @@ export class MiningScene extends Phaser.Scene {
         this.createOreIcons()
 
         const oreTypeKey = ore.sprite.texture.key.replace("Ore", "").toLowerCase()
-        const dropQuantity = Phaser.Math.Between(1, 3)
+        const dropQuantity = Phaser.Math.Between(3, 6)
         this.dropOre(ore.container.x, ore.container.y, oreTypeKey, dropQuantity)
 
         ore.container.destroy()
@@ -381,6 +390,8 @@ export class MiningScene extends Phaser.Scene {
             oreClickMultLevel: this.player.upgrades.oreClickMultiplier.level,
             smithingLevel: this.player.skills.smithing.level,
             smithingXP: this.player.skills.smithing.xp,
+            swordTier: this.player.stats.swordTier ?? 1,
+            pickaxeTier: this.player.stats.pickaxeTier ?? 1,
           },
           inventory: {
             coins: this.player.inventory.coins ?? 0,
@@ -390,8 +401,6 @@ export class MiningScene extends Phaser.Scene {
             copperBar: this.player.inventory.copperBar ?? 0,
             ironBar: this.player.inventory.ironBar ?? 0,
             goldBar: this.player.inventory.goldBar ?? 0,
-            swordTier: this.player.stats.swordTier ?? 1,
-            pickaxeTier: this.player.stats.pickaxeTier ?? 1,
           }
         })
       })
@@ -446,13 +455,15 @@ export class MiningScene extends Phaser.Scene {
             gold: "goldOre",
         }
         const itemKey = keyMap[oreType]
-        this.player.inventory[itemKey] = (this.player.inventory[itemKey] ?? 0) + 1
+        const baseAmount = 1
+        const totalAmount = Math.max(1, Math.floor(baseAmount* (this.player.oreMultiplier || 1)))
+        this.player.inventory[itemKey] = (this.player.inventory[itemKey] ?? 0) + totalAmount
         updateInventoryUI(this)
 
         const pickupText = this.add.text(
             sprite.x,
             sprite.y - 20,
-            `+1 ${oreType} ore`,
+            `+${totalAmount} ${oreType} ore`,
             { fontSize: '18px', color: '#ffcc00', fontStyle: 'bold' }
         ).setOrigin(0.5)
 
@@ -482,6 +493,8 @@ export class MiningScene extends Phaser.Scene {
             oreClickMultLevel: this.player.upgrades.oreClickMultiplier.level,
             smithingLevel: this.player.skills.smithing.level,
             smithingXP: this.player.skills.smithing.xp,
+            swordTier: this.player.stats.swordTier ?? 1,
+            pickaxeTier: this.player.stats.pickaxeTier ?? 1,
           },
           inventory: {
             coins: this.player.inventory.coins ?? 0,
@@ -491,8 +504,6 @@ export class MiningScene extends Phaser.Scene {
             copperBar: this.player.inventory.copperBar ?? 0,
             ironBar: this.player.inventory.ironBar ?? 0,
             goldBar: this.player.inventory.goldBar ?? 0,
-            swordTier: this.player.stats.swordTier ?? 1,
-            pickaxeTier: this.player.stats.pickaxeTier ?? 1,
           }
         })
       })

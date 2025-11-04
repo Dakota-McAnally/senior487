@@ -172,7 +172,7 @@ app.post("/saveProgress", (req, res) => {
       [
         combatLevel ?? 1, combatXP ?? 0, coinMultLevel ?? 0, dpsMultLevel ?? 0, clickMultLevel ?? 0,
         miningLevel ?? 1, miningXP ?? 0, oreMultLevel ?? 0, oreDpsMultLevel ?? 0, oreClickMultLevel ?? 0,
-        smithingLevel ?? 1, smithingXP ?? 0, swordTier ?? 0, pickaxeTier ?? 0,
+        smithingLevel ?? 1, smithingXP ?? 0, swordTier ?? 1, pickaxeTier ?? 1,
         user.id
       ],
       (err2) => {

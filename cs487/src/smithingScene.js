@@ -56,5 +56,6 @@ export class SmithingScene extends Phaser.Scene {
       fontSize: "22px",
       color: "#cccccc"
     }).setOrigin(0.5);
+    this.cameras.main.fadeIn(300, 0, 0, 0)
   }
 }

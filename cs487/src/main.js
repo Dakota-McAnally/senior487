@@ -1,14 +1,14 @@
 import './style.css'
-import Phaser from 'phaser';
+import Phaser from 'phaser'
 import { addXP, createXPBar, getXPForNextLevel } from './utils/xp.js'
-import { showUI, setupGlobalButtons } from './utils/uiManager.js';
+import { showUI, setupGlobalButtons } from './utils/uiManager.js'
 import { MiningScene } from './miningScene.js'
 import { SmithingScene } from './smithingScene.js'
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3001"
 
 //global functions (multiple scenes can/will use)
 export function getUpgradeCost(baseCost, level) {
-  return Math.floor(baseCost * Math.pow(1.25, level));
+  return Math.floor(baseCost * Math.pow(1.25, level))
 }
 
 export function recomputeAllUpgradeCosts(player, baseCosts) {
@@ -30,7 +30,7 @@ export function updateInventoryUI(scene) {
   }
   inventoryUI.innerHTML = ""
 
-  const inv = scene.player.inventory;
+  const inv = scene.player.inventory
 
   const swordStats = getToolStats(player, "sword")
   const pickaxeStats = getToolStats(player, "pickaxe")
@@ -45,8 +45,8 @@ export function updateInventoryUI(scene) {
     { name: "Copper Ore", quantity: inv.copperOre, icon: "copper_item.png" },
     { name: "Iron Ore", quantity: inv.ironOre, icon: "iron_item.png" },
     { name: "Gold Ore", quantity: inv.goldOre, icon: "gold_item.png" },
-    { name: swordStats.name, quantity: `DPS: ${swordStats.dps}`, icon: swordIcon},
-    { name: pickaxeStats.name, quantity: `Power: ${pickaxeStats.dps}`, icon: pickaxeIcon},
+    { name: swordStats.name, quantity: `DPS: ${swordStats.dps}`, icon: swordIcon },
+    { name: pickaxeStats.name, quantity: `Power: ${pickaxeStats.dps}`, icon: pickaxeIcon },
 
   ]
 
@@ -93,6 +93,15 @@ export function getToolStats(player, type) {
   const toolData = TOOL_TIERS[type][tier] ?? TOOL_TIERS[type][1]
   return toolData
 }
+export function getRequiredOreForUpgrade(level) {
+  if (level < 10) {
+    return "copperOre"
+  }
+  if (level < 20) {
+    return "ironOre"
+  }
+  return "goldOre"
+}
 
 export function startGame(user) {
   console.log("startGame called with user: ", user)
@@ -124,34 +133,34 @@ export function startGame(user) {
       name: "skeleton",
       unlockLevel: 10,
       texture: "skeleton",
-      baseHealth: 320,
+      baseHealth: 480,
       xpReward: 64,
       coinMultiplier: 2.85,
     }
   ]
   class Enemy {
     constructor(scene, x, y, texture, maxHealth = 50, xpReward = null, name = "Unknown") {
-      this.scene = scene;
-      this.maxHealth = maxHealth;
-      this.health = maxHealth;
-      this.xpReward = xpReward;
-      this.name = name;
+      this.scene = scene
+      this.maxHealth = maxHealth
+      this.health = maxHealth
+      this.xpReward = xpReward
+      this.name = name
       this.lastTintTime = 0
       this.tintCooldown = 400
 
-      this.container = scene.add.container(x, y + 60);
+      this.container = scene.add.container(x, y + 60)
 
       // enemy sprites
-      this.sprite = scene.add.image(0, 0, texture).setOrigin(0.5, 1);
-      this.sprite.setScale(2.3);
-      this.sprite.flipX = true;
-      this.sprite.setInteractive();
-      this.container.add(this.sprite);
+      this.sprite = scene.add.image(0, 0, texture).setOrigin(0.5, 1)
+      this.sprite.setScale(2.3)
+      this.sprite.flipX = true
+      this.sprite.setInteractive()
+      this.container.add(this.sprite)
 
       // height of displayed sprite
-      const spriteHeight = this.sprite.displayHeight;
-      const hpBarY = -spriteHeight - 20;     // health bar sits just above the sprite
-      const nameTextY = hpBarY - 25;         // name sits just above HP bar
+      const spriteHeight = this.sprite.displayHeight
+      const hpBarY = -spriteHeight - 20     // health bar sits just above the sprite
+      const nameTextY = hpBarY - 25         // name sits just above HP bar
 
       // Enemy name text
       this.nameText = scene.add.text(0, nameTextY, this.name.charAt(0).toUpperCase() + this.name.slice(1), {
@@ -161,28 +170,28 @@ export function startGame(user) {
         stroke: '#000000',
         strokeThickness: 3,
         align: 'center'
-      }).setOrigin(0.5);
-      this.container.add(this.nameText);
+      }).setOrigin(0.5)
+      this.container.add(this.nameText)
 
       // Health bar background
-      this.healthBarBg = scene.add.graphics();
-      this.healthBarBg.fillStyle(0xff0000, 1);
-      this.healthBarBg.fillRect(-100, hpBarY, 200, 20);
-      this.container.add(this.healthBarBg);
+      this.healthBarBg = scene.add.graphics()
+      this.healthBarBg.fillStyle(0xff0000, 1)
+      this.healthBarBg.fillRect(-100, hpBarY, 200, 20)
+      this.container.add(this.healthBarBg)
 
       // Health bar
-      this.healthBar = scene.add.graphics();
-      this.healthBar.fillStyle(0x2ecc71, 1);
-      this.healthBar.fillRect(-100, hpBarY, 200, 20);
-      this.container.add(this.healthBar);
+      this.healthBar = scene.add.graphics()
+      this.healthBar.fillStyle(0x2ecc71, 1)
+      this.healthBar.fillRect(-100, hpBarY, 200, 20)
+      this.container.add(this.healthBar)
 
       // HP text 
       this.hpText = scene.add.text(0, hpBarY + 10, `${this.health}/${this.maxHealth}`, {
         fontSize: '16px',
         fill: '#ffffff',
         fontStyle: 'bold'
-      }).setOrigin(0.5);
-      this.container.add(this.hpText);
+      }).setOrigin(0.5)
+      this.container.add(this.hpText)
 
       // Bobbing animation
       this.idleTween = scene.tweens.add({
@@ -192,24 +201,24 @@ export function startGame(user) {
         yoyo: true,
         repeat: -1,
         ease: "Sine.easeInOut"
-      });
+      })
 
       this.sprite.on("pointerdown", () => {
-        this.takeDamage(scene.getClickDamage());
-      });
+        this.takeDamage(scene.getClickDamage())
+      })
     }
     updateHealthBar() {
-      const hpBarY = -this.sprite.displayHeight - 20;
-      const maxWidth = 200;
-      const percent = Phaser.Math.Clamp(this.health / this.maxHealth, 0, 1);
-      const filledWidth = maxWidth * percent;
+      const hpBarY = -this.sprite.displayHeight - 20
+      const maxWidth = 200
+      const percent = Phaser.Math.Clamp(this.health / this.maxHealth, 0, 1)
+      const filledWidth = maxWidth * percent
 
       // Redraw the green HP bar only
-      this.healthBar.clear();
-      this.healthBar.fillStyle(0x2ecc71, 1);
+      this.healthBar.clear()
+      this.healthBar.fillStyle(0x2ecc71, 1)
 
       // Draw from left edge, fixed width background
-      this.healthBar.fillRect(-100, hpBarY, filledWidth, 20);
+      this.healthBar.fillRect(-100, hpBarY, filledWidth, 20)
     }
     showDamage(amount) {
       const dmgText = this.scene.add.text(
@@ -421,13 +430,13 @@ export function startGame(user) {
       }
       //multiplier scaling per level of multiplier
       //combat
-      this.player.coinMultiplier = 1.00 + 0.20 * this.player.upgrades.coinMultiplier.level;
-      this.player.dpsMultiplier = 1.00 + 0.20 * this.player.upgrades.dpsMultiplier.level;
-      this.player.clickMultiplier = 1.00 + 0.20 * this.player.upgrades.clickMultiplier.level;
+      this.player.coinMultiplier = 1.00 + 0.12 * this.player.upgrades.coinMultiplier.level
+      this.player.dpsMultiplier = 1.00 + 0.12 * this.player.upgrades.dpsMultiplier.level
+      this.player.clickMultiplier = 1.00 + 0.12 * this.player.upgrades.clickMultiplier.level
       //mining
-      this.player.oreMultiplier = 1.00 + 0.20 * this.player.upgrades.oreMultiplier.level;
-      this.player.oreDpsMultiplier = 1.00 + 0.20 * this.player.upgrades.oreDpsMultiplier.level;
-      this.player.oreClickMultiplier = 1.00 + 0.20 * this.player.upgrades.oreClickMultiplier.level;
+      this.player.oreMultiplier = 1.00 + 0.12 * this.player.upgrades.oreMultiplier.level
+      this.player.oreDpsMultiplier = 1.00 + 0.12 * this.player.upgrades.oreDpsMultiplier.level
+      this.player.oreClickMultiplier = 1.00 + 0.12 * this.player.upgrades.oreClickMultiplier.level
       // console.log("Player initialized", this.player.username)
       //Background + Spawn sprites
       this.add.image(0, 0, "bg").setOrigin(0, 0)
@@ -435,7 +444,7 @@ export function startGame(user) {
 
       // inventory's toggle button
       const inventoryUI = document.getElementById("inventoryUI")
-      if(inventoryUI) {
+      if (inventoryUI) {
         inventoryUI.style.display = "none"
       }
       updateInventoryUI(this)
@@ -469,6 +478,14 @@ export function startGame(user) {
 
       this.combatXPBar = createXPBar(this, "combat", 0x00ff00, 20)
       this.combatXPBar.update(this.player)
+      // Scene title
+        this.add.text(464, 60, "Dark Forest", {
+            fontSize: "32px",
+            color: "#ffffcc",
+            fontStyle: "bold",
+            stroke: "#000000",
+            strokeThickness: 3
+        }).setOrigin(0.5);
 
       //DPS function
       this.time.addEvent({
@@ -484,9 +501,9 @@ export function startGame(user) {
           })
         },
       })
-
+      this.cameras.main.fadeIn(300, 0, 0, 0)
     }
-    
+
     swingSword() {
       if (this.isSwinging) {
         return
@@ -517,16 +534,16 @@ export function startGame(user) {
     }
     spawnNewMonster(monsterName) {
       // Remove old enemies
-      this.enemies.forEach(e => e.container.destroy());
-      this.enemies = [];
+      this.enemies.forEach(e => e.container.destroy())
+      this.enemies = []
 
-      const monsterData = this.monsters.find(m => m.name === monsterName);
-      if (!monsterData) return;
+      const monsterData = this.monsters.find(m => m.name === monsterName)
+      if (!monsterData) return
 
       const newEnemy = new Enemy(this, 464, 400, monsterData.texture,
-        monsterData.maxHealth, monsterData.xpReward);
-      this.enemies.push(newEnemy);
-      console.log(`${monsterName} spawned!`);
+        monsterData.maxHealth, monsterData.xpReward)
+      this.enemies.push(newEnemy)
+      console.log(`${monsterName} spawned!`)
     }
     //retrieves current monster type (Depends on players combat lvl)
     getCurrentMonsterType() {
@@ -600,6 +617,8 @@ export function startGame(user) {
             oreClickMultLevel: this.player.upgrades.oreClickMultiplier.level,
             smithingLevel: this.player.skills.smithing.level,
             smithingXP: this.player.skills.smithing.xp,
+            swordTier: this.player.stats.swordTier ?? 1,
+            pickaxeTier: this.player.stats.pickaxeTier ?? 1,
           },
           inventory: {
             coins: this.player.inventory.coins ?? 0,
@@ -609,12 +628,10 @@ export function startGame(user) {
             copperBar: this.player.inventory.copperBar ?? 0,
             ironBar: this.player.inventory.ironBar ?? 0,
             goldBar: this.player.inventory.goldBar ?? 0,
-            swordTier: this.player.stats.swordTier ?? 1,
-            pickaxeTier: this.player.stats.pickaxeTier ?? 1,
           }
         })
       })
-        .catch(err => console.error("Failed to save progress:", err));
+        .catch(err => console.error("Failed to save progress:", err))
     }
 
     //drop coins from monster, with variance
@@ -629,7 +646,7 @@ export function startGame(user) {
         coin.setBounce(0.6)
         coin.setVelocity(Phaser.Math.Between(-50, 50), Phaser.Math.Between(-10, -50))
         coin.setCollideWorldBounds(true)
-        this.coins.add(coin);
+        this.coins.add(coin)
 
         //automatically pick up coins after set time
         this.time.delayedCall(8500, () => {
@@ -659,34 +676,34 @@ export function startGame(user) {
 
   class ShopScene extends Phaser.Scene {
     constructor() {
-      super("scene-shop");
-      this.baseCosts = { coinMultiplier: 150, dpsMultiplier: 100, clickMultiplier: 60 };
+      super("scene-shop")
+      this.baseCosts = { coinMultiplier: 150, dpsMultiplier: 100, clickMultiplier: 60, oreMultiplier: 50, oreDpsMultiplier: 40, oreClickMultiplier: 25 }
     }
 
     init(data) {
       // Receive player data from MainScene
-      this.player = data.player;
+      this.player = data.player
       recomputeAllUpgradeCosts(this.player, this.baseCosts)
 
     }
 
     create() {
       showUI(this.scene.key)
-      // const combatButton = document.getElementById("combatButton");
-      // const miningButton = document.getElementById("miningButton");
+      // const combatButton = document.getElementById("combatButton")
+      // const miningButton = document.getElementById("miningButton")
       // if (combatButton) {
-      //   combatButton.style.display = "none";
+      //   combatButton.style.display = "none"
       // }
       // if (miningButton) {
-      //   miningButton.style.display = "none";
+      //   miningButton.style.display = "none"
       // }
-      this.add.rectangle(0, 0, 928, 793, 0x222222).setOrigin(0, 0);
+      this.add.rectangle(0, 0, 928, 793, 0x222222).setOrigin(0, 0)
 
       this.add.text(464, 50, "Upgrade Shop", {
         fontSize: '32px',
         color: '#ffffff',
         fontStyle: 'bold',
-      }).setOrigin(0.5);
+      }).setOrigin(0.5)
 
       // Back button
       const backButton = this.add.text(20, 740, "Back", {
@@ -699,57 +716,62 @@ export function startGame(user) {
         .setInteractive({ useHandCursor: true })
         .on('pointerdown', () => {
           fetch(`${API_BASE}/saveProgress`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: this.player.username,
-          stats: {
-            combatLevel: this.player.skills.combat.level,
-            combatXP: this.player.skills.combat.xp,
-            coinMultLevel: this.player.upgrades.coinMultiplier.level,
-            dpsMultLevel: this.player.upgrades.dpsMultiplier.level,
-            clickMultLevel: this.player.upgrades.clickMultiplier.level,
-            miningLevel: this.player.skills.mining.level,
-            miningXP: this.player.skills.mining.xp,
-            oreMultLevel: this.player.upgrades.oreMultiplier.level,
-            oreDpsMultLevel: this.player.upgrades.oreDpsMultiplier.level,
-            oreClickMultLevel: this.player.upgrades.oreClickMultiplier.level,
-            smithingLevel: this.player.skills.smithing.level,
-            smithingXP: this.player.skills.smithing.xp,
-          },
-          inventory: {
-            coins: this.player.inventory.coins ?? 0,
-            copperOre: this.player.inventory.copperOre ?? 0,
-            ironOre: this.player.inventory.ironOre ?? 0,
-            goldOre: this.player.inventory.goldOre ?? 0,
-            copperBar: this.player.inventory.copperBar ?? 0,
-            ironBar: this.player.inventory.ironBar ?? 0,
-            goldBar: this.player.inventory.goldBar ?? 0,
-            swordTier: this.player.stats.swordTier ?? 1,
-            pickaxeTier: this.player.stats.pickaxeTier ?? 1,
-          }
-        })
-      })
-        .catch(err => console.error("Failed to save progress:", err));
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              username: this.player.username,
+              stats: {
+                combatLevel: this.player.skills.combat.level,
+                combatXP: this.player.skills.combat.xp,
+                coinMultLevel: this.player.upgrades.coinMultiplier.level,
+                dpsMultLevel: this.player.upgrades.dpsMultiplier.level,
+                clickMultLevel: this.player.upgrades.clickMultiplier.level,
+                miningLevel: this.player.skills.mining.level,
+                miningXP: this.player.skills.mining.xp,
+                oreMultLevel: this.player.upgrades.oreMultiplier.level,
+                oreDpsMultLevel: this.player.upgrades.oreDpsMultiplier.level,
+                oreClickMultLevel: this.player.upgrades.oreClickMultiplier.level,
+                smithingLevel: this.player.skills.smithing.level,
+                smithingXP: this.player.skills.smithing.xp,
+                swordTier: this.player.stats.swordTier ?? 1,
+                pickaxeTier: this.player.stats.pickaxeTier ?? 1,
+              },
+              inventory: {
+                coins: this.player.inventory.coins ?? 0,
+                copperOre: this.player.inventory.copperOre ?? 0,
+                ironOre: this.player.inventory.ironOre ?? 0,
+                goldOre: this.player.inventory.goldOre ?? 0,
+                copperBar: this.player.inventory.copperBar ?? 0,
+                ironBar: this.player.inventory.ironBar ?? 0,
+                goldBar: this.player.inventory.goldBar ?? 0,
+              }
+            })
+          }).catch(err => console.error("Failed to save progress:", err))
+
           const lastScene = this.player.lastScene || "scene-main"
 
-          this.scene.stop("scene-shop")
-          
-          if(this.scene.get(lastScene)) {
-            this.scene.start(lastScene, { player: this.player })
-          } else {
-            this.scene.start("scene-main", { player: this.player })
-          }
-        });
+          // Smooth fade-out + fade-in chain
+          this.cameras.main.fadeOut(300, 0, 0, 0)
+          this.cameras.main.once("camerafadeoutcomplete", () => {
+            this.scene.stop("scene-shop")
+
+            const targetScene = this.scene.get(lastScene) ? lastScene : "scene-main"
+            this.scene.start(targetScene, { player: this.player })
+
+            const nextScene = this.scene.get(targetScene)
+            if (nextScene && nextScene.cameras && nextScene.cameras.main) {
+              nextScene.cameras.main.fadeIn(300, 0, 0, 0)
+            }
+          })
+        })
+
 
       // Combat + Mining upgrades
       const upgrades = [
-        // Combat upgrades (first shelf) 
         { key: "coinMultiplier", label: "Coin Multiplier", row: 0 },
         { key: "dpsMultiplier", label: "DPS Multiplier", row: 0 },
         { key: "clickMultiplier", label: "Click Multiplier", row: 0 },
 
-        // Mining upgrades (second shelf)
         { key: "oreMultiplier", label: "Ore Multiplier", row: 1 },
         { key: "oreDpsMultiplier", label: "Ore DPS Multiplier", row: 1 },
         { key: "oreClickMultiplier", label: "Ore Click Multiplier", row: 1 },
@@ -758,99 +780,172 @@ export function startGame(user) {
       const startX = 100;
       const startY = 120;
       const colSpacing = 250;
-      const rowSpacing = 200;
+      const rowSpacing = 210;
       const itemsPerRow = 3;
       this.upgradeTexts = {};
+
+      const oreLabelFromKey = (k) => {
+        if (k === "copperOre") return "Copper Ore";
+        if (k === "ironOre") return "Iron Ore";
+        return "Gold Ore";
+      };
+      const oreKeyForLevel = (lvl) => (lvl < 10 ? "copperOre" : (lvl < 20 ? "ironOre" : "goldOre"));
+      const oreAmtForLevel = (lvl) => Math.floor(5 + 1.5 * lvl);
 
       upgrades.forEach((upg, index) => {
         const col = index % itemsPerRow;
         const x = startX + col * colSpacing;
         const y = startY + upg.row * rowSpacing;
 
-        // Card background
-        const card = this.add.rectangle(x, y, 220, 180, 0x333333, 0.8)
+        const card = this.add.rectangle(x, y, 220, 200, 0x333333, 0.8)
           .setStrokeStyle(2, 0xffffff)
           .setOrigin(0, 0);
 
-        // Label
-        const nameText = this.add.text(x + 110, y + 20, upg.label, {
-          fontSize: '22px',
-          color: '#ffff00',
-          fontStyle: 'bold',
-          align: 'center',
+        // Title
+        this.add.text(x + 110, y + 18, upg.label, {
+          fontSize: "22px",
+          color: "#ffff00",
+          fontStyle: "bold",
+          align: "center",
           wordWrap: { width: 200 }
         }).setOrigin(0.5, 0);
 
-        // Level + cost text
-        const upgObj = this.player.upgrades[upg.key];
-        const level = upgObj?.level ?? 0;
-        const cost = upgObj?.cost ?? getUpgradeCost(this.baseCosts[upg.key] || 100, level + 1);
+        // Level + Cost block
+        const u = this.player.upgrades[upg.key];
+        const level = u?.level ?? 0;
+        const coinCost = u?.cost ?? getUpgradeCost(this.baseCosts[upg.key] || 100, level + 1);
 
-        const costText = this.add.text(
-          x + 110, y + 70,
-          `Level: ${level}\nCost: ${cost} coins`,
-          { fontSize: '18px', color: '#ffffff', align: 'center' }
-        ).setOrigin(0.5, 0);
+        let costDisplay = `Level: ${level}\nCost: ${coinCost} coins`;
+        if (upg.key.startsWith("ore")) {
+          const oreKey = oreKeyForLevel(level);
+          const oreAmt = oreAmtForLevel(level);
+          costDisplay = `Level: ${level}\nCost:\n${coinCost} coins\n${oreAmt} ${oreLabelFromKey(oreKey)}`;
+        }
+
+        const costText = this.add.text(x + 110, y + 64, costDisplay, {
+          fontSize: "15px",
+          color: "#ffffff",
+          align: "center",
+          lineSpacing: 2,
+          wordWrap: { width: 190 }
+        }).setOrigin(0.5, 0);
         this.upgradeTexts[upg.key] = costText;
 
-        // Upgrade button
-        const buttonY = y + 150;
-        const button = this.add.rectangle(x + 110, buttonY, 180, 40, 0xffff00, 0.8)
+        // Button
+        const buttonY = y + 160;
+        this.add.rectangle(x + 110, buttonY, 180, 40, 0xffff00, 0.8)
           .setStrokeStyle(2, 0xffffff)
           .setOrigin(0.5)
           .setInteractive({ useHandCursor: true })
-          .on('pointerdown', () => this.buyUpgrade(upg.key));
+          .on("pointerdown", () => this.buyUpgrade(upg.key));
 
         this.add.text(x + 110, buttonY, "Upgrade", {
-          fontSize: '18px',
-          color: '#000',
-          fontStyle: 'bold'
-        }).setOrigin(0.5, 0.5);
+          fontSize: "18px",
+          color: "#000",
+          fontStyle: "bold"
+        }).setOrigin(0.5);
       });
 
-      // Upgrade feedback message
       this.upgradeMessage = this.add.text(464, 700, "", {
-        fontSize: '20px',
-        color: '#ff0',
-        align: 'center'
+        fontSize: "20px",
+        color: "#ff0",
+        align: "center"
       }).setOrigin(0.5);
+
     }
 
     buyUpgrade(upgradeType) {
       const upgrade = this.player.upgrades[upgradeType];
-      const upgradeNames = { coinMultiplier: "Coin Multiplier", dpsMultiplier: "DPS Multiplier", clickMultiplier: "Click Damage Multiplier" };
-      const currentCost = upgrade.cost
+      const names = {
+        coinMultiplier: "Coin Multiplier",
+        dpsMultiplier: "DPS Multiplier",
+        clickMultiplier: "Click Damage Multiplier",
+        oreMultiplier: "Ore Multiplier",
+        oreDpsMultiplier: "Ore DPS Multiplier",
+        oreClickMultiplier: "Ore Click Multiplier",
+      };
 
-      if (this.player.coins < currentCost) {
-        this.upgradeMessage.setText("Not enough coins!");
+      const level = upgrade.level ?? 0;
+      const currentCoinCost = upgrade.cost ?? getUpgradeCost(this.baseCosts[upgradeType], level + 1);
+
+      const isOreUpgrade = upgradeType.startsWith("ore");
+      const oreKeyForLevel = (lvl) => (lvl < 10 ? "copperOre" : (lvl < 20 ? "ironOre" : "goldOre"));
+      const oreLabelFromKey = (k) => (k === "copperOre" ? "Copper Ore" : k === "ironOre" ? "Iron Ore" : "Gold Ore");
+      const oreAmtForLevel = (lvl) => Math.floor(5 + 1.5 * lvl);
+
+      let requiredOreKey = null;
+      let requiredOreAmount = 0;
+      if (isOreUpgrade) {
+        requiredOreKey = oreKeyForLevel(level);
+        requiredOreAmount = oreAmtForLevel(level);
+      }
+
+      // Missing resources check (subtract what the player has) 
+      const coinsShort = Math.max(0, currentCoinCost - (this.player.coins ?? 0));
+      const haveOre = isOreUpgrade ? (this.player.inventory?.[requiredOreKey] ?? 0) : 0;
+      const oreShort = isOreUpgrade ? Math.max(0, requiredOreAmount - haveOre) : 0;
+
+      if (coinsShort > 0 || oreShort > 0) {
+        const parts = [];
+        if (coinsShort > 0) parts.push(`${coinsShort} more coins`);
+        if (oreShort > 0) parts.push(`${oreShort} ${oreLabelFromKey(requiredOreKey)}`);
+        this.upgradeMessage.setText(`You need: ${parts.join(" and ")}!`);
         return;
       }
 
-      this.player.coins -= currentCost
-      this.player.inventory.coins = this.player.coins
+      // Take resources
+      this.player.coins = Number(this.player.coins) || 0
+      this.player.coins -= currentCoinCost;
+      this.player.inventory.coins = this.player.coins;
+
+      if (isOreUpgrade) {
+        this.player.inventory[requiredOreKey] -= requiredOreAmount;
+        if (this.player.inventory[requiredOreKey] < 0) this.player.inventory[requiredOreKey] = 0; // safety
+      }
+
+      // Apply upgrade
       upgrade.level++;
-      const nextCost = getUpgradeCost(this.baseCosts[upgradeType], upgrade.level + 1)
+      const nextCost = getUpgradeCost(this.baseCosts[upgradeType], upgrade.level + 1);
+      upgrade.cost = nextCost;
 
-      // Update multipliers
+      // Recompute multipliers
       if (upgradeType === "coinMultiplier") {
-        this.player.coinMultiplier = 1.15 + 0.05 * upgrade.level;
+        this.player.coinMultiplier = 1.00 + 0.12 * upgrade.level;
       } else if (upgradeType === "dpsMultiplier") {
-        this.player.dpsMultiplier = 1.15 + 0.10 * upgrade.level;
+        this.player.dpsMultiplier = 1.00 + 0.12 * upgrade.level;
       } else if (upgradeType === "clickMultiplier") {
-        this.player.clickMultiplier = 1.15 + 0.10 * upgrade.level;
+        this.player.clickMultiplier = 1.00 + 0.12 * upgrade.level;
+      } else if (upgradeType === "oreMultiplier") {
+        this.player.oreMultiplier = 1.00 + 0.12 * upgrade.level;
+      } else if (upgradeType === "oreDpsMultiplier") {
+        this.player.oreDpsMultiplier = 1.00 + 0.12 * upgrade.level;
+      } else if (upgradeType === "oreClickMultiplier") {
+        this.player.oreClickMultiplier = 1.00 + 0.12 * upgrade.level;
       }
 
-      upgrade.cost = nextCost
-      updateInventoryUI(this)
+      // Refresh specific card’s text so it shows the new level & costs
+      const oreKeyNext = isOreUpgrade ? oreKeyForLevel(upgrade.level) : null;
+      const oreAmtNext = isOreUpgrade ? oreAmtForLevel(upgrade.level) : 0;
+
       if (this.upgradeTexts[upgradeType]) {
-        this.upgradeTexts[upgradeType].setText(`Level: ${upgrade.level} \n Cost: ${nextCost} coins`)
+        if (isOreUpgrade) {
+          this.upgradeTexts[upgradeType].setText(
+            `Level: ${upgrade.level}\nCost:\n${upgrade.cost} coins\n${oreAmtNext} ${oreLabelFromKey(oreKeyNext)}`
+          );
+        } else {
+          this.upgradeTexts[upgradeType].setText(
+            `Level: ${upgrade.level}\nCost: ${upgrade.cost} coins`
+          );
+        }
       }
 
-      this.upgradeMessage.setText(`${upgradeNames[upgradeType]} upgraded to level ${upgrade.level}! Coins Remaining: ${this.player.coins} `);
+      updateInventoryUI(this);
+      this.upgradeMessage.setText(`${names[upgradeType]} upgraded to level ${upgrade.level}!`);
 
-      this.events.emit("coinsUpdated", this.player.coins) //emits an event to other scenes (in this case to update coins within inventory)
+      // Let other scenes know (for the inventory panel)
+      this.events.emit("coinsUpdated", this.player.coins);
 
-      // Save to backend
+      // save to db
       fetch(`${API_BASE}/saveProgress`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -869,6 +964,8 @@ export function startGame(user) {
             oreClickMultLevel: this.player.upgrades.oreClickMultiplier.level,
             smithingLevel: this.player.skills.smithing.level,
             smithingXP: this.player.skills.smithing.xp,
+            swordTier: this.player.stats.swordTier ?? 1,
+            pickaxeTier: this.player.stats.pickaxeTier ?? 1,
           },
           inventory: {
             coins: this.player.inventory.coins ?? 0,
@@ -878,13 +975,12 @@ export function startGame(user) {
             copperBar: this.player.inventory.copperBar ?? 0,
             ironBar: this.player.inventory.ironBar ?? 0,
             goldBar: this.player.inventory.goldBar ?? 0,
-            swordTier: this.player.stats.swordTier ?? 1,
-            pickaxeTier: this.player.stats.pickaxeTier ?? 1,
           }
         })
-      })
-        .catch(err => console.error("Failed to save progress:", err));
+      }).catch(err => console.error("Failed to save progress:", err));
     }
+
+
   }
   const swordTier = user.stats?.swordTier ?? 1
   const pickaxeTier = user.stats?.pickaxeTier ?? 1
@@ -893,14 +989,14 @@ export function startGame(user) {
   window.currentUser = {
     username: user.username,
     coins: user.coins ?? 0,
-    coinMultiplier: 1.15,
+    coinMultiplier: 1.00,
     dps: swordData.dps,
-    dpsMultiplier: 1.15,
-    clickMultiplier: 1.15,
+    dpsMultiplier: 1.00,
+    clickMultiplier: 1.00,
     miningPower: pickaxeData.dps,
-    oreMultiplier: 1.15,
-    oreDpsMultiplier: 1.15,
-    oreClickMultiplier: 1.15,
+    oreMultiplier: 1.00,
+    oreDpsMultiplier: 1.00,
+    oreClickMultiplier: 1.00,
 
     // Player inventory
     inventory: {
@@ -917,12 +1013,30 @@ export function startGame(user) {
 
     // Upgrades
     upgrades: {
-      coinMultiplier: { level: user.stats?.coinMultLevel ?? 0, cost: 150 },
-      dpsMultiplier: { level: user.stats?.dpsMultLevel ?? 0, cost: 100 },
-      clickMultiplier: { level: user.stats?.clickMultLevel ?? 0, cost: 60 },
-      oreMultiplier: { level: user.stats?.oreMultLevel ?? 0, cost: 50 },
-      oreDpsMultiplier: { level: user.stats?.oreDpsMultLevel ?? 0, cost: 40 },
-      oreClickMultiplier: { level: user.stats?.oreClickMultLevel ?? 0, cost: 25 },
+      coinMultiplier: {
+        level: user.stats?.coinMultLevel ?? 0,
+        cost: getUpgradeCost(150, (user.stats?.coinMultLevel ?? 0) + 1)
+      },
+      dpsMultiplier: {
+        level: user.stats?.dpsMultLevel ?? 0,
+        cost: getUpgradeCost(100, (user.stats?.dpsMultLevel ?? 0) + 1)
+      },
+      clickMultiplier: {
+        level: user.stats?.clickMultLevel ?? 0,
+        cost: getUpgradeCost(60, (user.stats?.clickMultLevel ?? 0) + 1)
+      },
+      oreMultiplier: {
+        level: user.stats?.oreMultLevel ?? 0,
+        cost: getUpgradeCost(50, (user.stats?.oreMultLevel ?? 0) + 1)
+      },
+      oreDpsMultiplier: {
+        level: user.stats?.oreDpsMultLevel ?? 0,
+        cost: getUpgradeCost(40, (user.stats?.oreDpsMultLevel ?? 0) + 1)
+      },
+      oreClickMultiplier: {
+        level: user.stats?.oreClickMultLevel ?? 0,
+        cost: getUpgradeCost(25, (user.stats?.oreClickMultLevel ?? 0) + 1)
+      },
     },
 
     // Skills
@@ -936,7 +1050,7 @@ export function startGame(user) {
       pickaxeTier
     },
     lastScene: "scene-main"
-  };
+  }
 
 
   const config = {
@@ -952,12 +1066,12 @@ export function startGame(user) {
         debug: false
       }
     },
-    canvasStyle: "position: absolute; top: 0; left: 0; z-index: 0;"
+    canvasStyle: "position: absolute top: 0 left: 0 z-index: 0"
   }
 
   const game = new Phaser.Game(config)
   game.userData = window.currentUser
-  setupGlobalButtons(game);
+  setupGlobalButtons(game)
   return game
 }
 
