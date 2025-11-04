@@ -1,6 +1,8 @@
 import Phaser from 'phaser'
 import { addXP, createXPBar } from './utils/xp.js'
 import { updateInventoryUI, getUpgradeCost, recomputeAllUpgradeCosts } from './main.js'
+import { showUI, setupGlobalButtons } from './utils/uiManager.js'
+
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3001"
 
@@ -18,7 +20,7 @@ const ORES = [
         unlockLevel: 5,
         texture: "ironOre",
         nodeHealth: 250,
-        xpReward: 6000,
+        xpReward: 60,
         oreMultiplier: 1.85
     },
     {
@@ -35,10 +37,14 @@ export class MiningScene extends Phaser.Scene {
     constructor() {
         super("scene-mining")
         this.baseCosts = {
+            coinMultiplier: 150,
+            dpsMultiplier: 100,
+            clickMultiplier: 60,
             oreMultiplier: 50,
-            oreDpsMultiplier: 45,
+            oreDpsMultiplier: 40,
             oreClickMultiplier: 25
         }
+
     }
 
     init(data) {
@@ -58,47 +64,35 @@ export class MiningScene extends Phaser.Scene {
     }
 
     create() {
-        const miningBg = this.add.image(0, 0, "miningBackground").setOrigin(0, 0);
-        miningBg.setDisplaySize(this.scale.width, this.scale.height);
+        showUI(this.scene.key)
+        const miningBg = this.add.image(0, 0, "miningBackground").setOrigin(0, 0)
+        miningBg.setDisplaySize(this.scale.width, this.scale.height)
         this.ores = this.physics.add.group()
-
-        // Combat nav button 
-        document.getElementById("miningButton").style.display = "none"
-        const combatButton = document.getElementById("combatButton")
-        if (combatButton) {
-            combatButton.style.display = "block"
-            combatButton.onclick = () => {
-                this.scene.start("scene-game", { player: this.player })
-            }
-        }
-
-        const upgradeMenuButton = document.getElementById("upgradeMenuButton")
-        if (upgradeMenuButton) {
-            upgradeMenuButton.style.display = "block"
-            upgradeMenuButton.onclick = () => {
-                this.player.lastScene = "scene-mining"
-                document.getElementById("combatButton").style.display = "none"
-                document.getElementById("miningButton").style.display = "none"
-                this.player.lastScene = "scene-mining"
-                this.scene.start("scene-shop", { player: this.player })
-            }
-        }
-
         // Mining node
+        const savedOre = localStorage.getItem("selectedOre")
         const currentOre = this.getCurrentOreType()
-        this.activeNode = this.spawnOreNode(currentOre)
-
+        const foundOre = ORES.find(o => o.name === savedOre)
+        if(foundOre && this.player.skills.mining.level >= foundOre.unlockLevel) {
+            this.activeOreName = foundOre.name
+        } else {
+            this.activeOreName = currentOre.name
+        }
+        this.activeNode = this.spawnOreNode(ORES.find(o => o.name === this.activeOreName || currentOre)
+        )
         // Pickaxe sprite
         this.pickaxe = this.add.image(534, 400, "pickaxe")
-        .setOrigin(0.85, 0.2)
-        .setScale(1.2)
-        .setFlipX(true)
-        .setAngle(-25)
-        .setDepth(10)
+            .setOrigin(0.85, 0.2)
+            .setScale(1.2)
+            .setFlipX(true)
+            .setAngle(-25)
+            .setDepth(10)
 
         // XP bar
         this.miningXPBar = createXPBar(this, "mining", 0x9999ff, 20)
         this.miningXPBar.update(this.player)
+        //Ore selection buttons
+        this.orePanel = this.add.container(464, 120)
+        this.createOreIcons()
 
         // DPS system
         this.time.addEvent({
@@ -121,12 +115,12 @@ export class MiningScene extends Phaser.Scene {
             }
             const dist = Phaser.Math.Distance.Between(pointer.x, pointer.y, ore.x, ore.y)
             if (dist < 40) {
-                this.pickupOre(ore, this.getCurrentOreType().name)
+                this.pickupOre(ore)
             }
         })
     }
     swingPickaxe() {
-        if(this.isSwinging) {
+        if (this.isSwinging) {
             return
         }
         this.isSwinging = true
@@ -158,15 +152,99 @@ export class MiningScene extends Phaser.Scene {
         }
         return current
     }
+    getUnlockedOres() {
+        const level = this.player.skills.mining.level ?? 1
+        return ORES.filter(ore => level >= ore.unlockLevel)
+    }
+    createOreIcons() {
+        const unlockedOres = this.getUnlockedOres()
+
+        // Clear old icons if re-rendering
+        if (this.orePanel.list.length) {
+            this.orePanel.removeAll(true)
+        }
+
+        const iconSpacing = 90
+        const startX = -(unlockedOres.length - 1) * (iconSpacing / 2)
+
+        unlockedOres.forEach((ore, i) => {
+            const icon = this.add.image(startX + i * iconSpacing, 0, `${ore.name}_item`)
+                .setScale(1.5)
+                .setInteractive({ useHandCursor: true })
+                .setAlpha(ore.name === this.activeOreName ? 1 : 0.6)
+
+            const frame = this.add.rectangle(startX + i * iconSpacing, 0, 64, 64)
+                .setStrokeStyle(2, 0xffffff)
+                .setOrigin(0.5)
+                .setAlpha(ore.name === this.activeOreName ? 1 : 0.4)
+
+            const container = this.add.container(0, 0, [frame, icon])
+
+            icon.on("pointerover", () => {
+                frame.setStrokeStyle(2, 0xffff66)
+                icon.setScale(1.7)
+            })
+            icon.on("pointerout", () => {
+                frame.setStrokeStyle(2, 0xffffff)
+                icon.setScale(1.5)
+            })
+            icon.on("pointerdown", () => {
+                this.changeActiveOre(ore)
+                this.activeOreName = ore.name
+                this.player.selectedOre = ore.name
+                //very rare instance of localStorage (no need to store the lastSelected ore in DB)
+                localStorage.setItem("selectedOre", ore.name)
+                this.createOreIcons() 
+            })
+            this.orePanel.add(container)
+        })
+    }
+
+    changeActiveOre(oreData) {
+        if(this.isChangingOre) {
+            return
+        }
+        if(this.isSwinging) {
+            return
+        }
+        if(this.activeNode && this.activeNode.container) {
+            this.activeNode.container.destroy()
+            this.activeNode = null
+        }
+
+        this.time.delayedCall(150, () => {
+            this.activeOreName = oreData.name
+            this.activeNode = this.spawnOreNode(oreData)
+            
+            const text = this.add.text(464, 160, `Mining ${oreData.name}!`, {
+                fontSize: '18px', color: '#ffffcc', fontStyle: 'bold'
+            }).setOrigin(0.5)
+
+            this.tweens.add({
+                targets: text,
+                y: text.y - 30,
+                alpha: 0,
+                duration: 1000,
+                ease: "Cubic.easeOut",
+                onComplete: () => text.destroy()
+            })
+            this.createOreIcons()
+            this.isChangingOre = false
+        })
+    }
     // generates the proper ore based on player mining level
     spawnOreNode(oreData) {
-        const container = this.add.container(464, 600);
+        //guarantee only one ore node exists at a time
+        if(this.activeNode && this.activeNode.container) {
+            this.activeNode.container.destroy()
+        }
+        const container = this.add.container(464, 600)
 
         // create ore sprite
-        const oreSprite = this.add.image(0, 0, oreData.texture).setOrigin(0.5, 1);
-        oreSprite.setScale(3);
-        oreSprite.setInteractive();
-        container.add(oreSprite);
+        const oreSprite = this.add.image(0, 0, oreData.texture).setOrigin(0.5, 1)
+        oreSprite.setScale(3)
+        oreSprite.setInteractive()
+        container.add(oreSprite)
 
         // ore stats
         const ore = {
@@ -177,42 +255,42 @@ export class MiningScene extends Phaser.Scene {
             xpReward: oreData.xpReward,
             oreMultiplier: oreData.oreMultiplier,
             name: oreData.name
-        };
+        }
 
         // hp bar bg
-        const hpBarY = -oreSprite.displayHeight - 30;
-        const hpBarBg = this.add.graphics();
-        hpBarBg.fillStyle(0xff0000, 1);
-        hpBarBg.fillRect(-100, hpBarY, 200, 20);
-        container.add(hpBarBg);
+        const hpBarY = -oreSprite.displayHeight - 30
+        const hpBarBg = this.add.graphics()
+        hpBarBg.fillStyle(0xff0000, 1)
+        hpBarBg.fillRect(-100, hpBarY, 200, 20)
+        container.add(hpBarBg)
 
         // fill ore hp bar 
-        const hpBar = this.add.graphics();
-        hpBar.fillStyle(0x33ff33, 1);
-        hpBar.fillRect(-100, hpBarY, 200, 20);
-        container.add(hpBar);
+        const hpBar = this.add.graphics()
+        hpBar.fillStyle(0x33ff33, 1)
+        hpBar.fillRect(-100, hpBarY, 200, 20)
+        container.add(hpBar)
 
         // ore node HP text
         const hpText = this.add.text(0, hpBarY + 10, `${ore.health}/${ore.maxHealth}`, {
             fontSize: "16px",
             color: "#ffffff",
             fontStyle: "bold"
-        }).setOrigin(0.5);
-        container.add(hpText);
+        }).setOrigin(0.5)
+        container.add(hpText)
 
         // ore mining click event
         oreSprite.on("pointerdown", () => {
-            this.mineOre(ore, this.player.dps * this.player.oreClickMultiplier);
-        });
+            this.mineOre(ore, this.player.dps * this.player.oreClickMultiplier)
+        })
 
         // ore health visual updates
         ore.updateHealth = () => {
-            const percent = Phaser.Math.Clamp(ore.health / ore.maxHealth, 0, 1);
-            hpBar.clear();
-            hpBar.fillStyle(0x33ff33, 1);
-            hpBar.fillRect(-100, hpBarY, 200 * percent, 20);
-            hpText.setText(`${Math.round(ore.health)}/${ore.maxHealth}`);
-        };
+            const percent = Phaser.Math.Clamp(ore.health / ore.maxHealth, 0, 1)
+            hpBar.clear()
+            hpBar.fillStyle(0x33ff33, 1)
+            hpBar.fillRect(-100, hpBarY, 200 * percent, 20)
+            hpText.setText(`${Math.round(ore.health)}/${ore.maxHealth}`)
+        }
 
         // ore damage text
         ore.showDamage = (amount) => {
@@ -220,8 +298,8 @@ export class MiningScene extends Phaser.Scene {
                 fontSize: "22px",
                 color: "#ff0000",
                 fontStyle: "bold"
-            }).setOrigin(0.5);
-            container.add(dmg);
+            }).setOrigin(0.5)
+            container.add(dmg)
             this.tweens.add({
                 targets: dmg,
                 y: dmg.y - 50,
@@ -229,23 +307,23 @@ export class MiningScene extends Phaser.Scene {
                 duration: 800,
                 ease: "Cubic.easeOut",
                 onComplete: () => dmg.destroy()
-            });
-        };
+            })
+        }
 
         // ore damage handler
         ore.takeDamage = (amount) => {
-            ore.health -= amount;
-            ore.health = Math.max(ore.health, 0);
-            ore.showDamage(amount);
-            ore.updateHealth();
+            ore.health -= amount
+            ore.health = Math.max(ore.health, 0)
+            ore.showDamage(amount)
+            ore.updateHealth()
 
             if (ore.health <= 0) {
-                this.breakOre(ore);
+                this.breakOre(ore)
             }
-        };
+        }
 
-        this.add.existing(container);
-        return ore;
+        this.add.existing(container)
+        return ore
     }
 
     mineOre(ore, damage) {
@@ -254,6 +332,7 @@ export class MiningScene extends Phaser.Scene {
 
     breakOre(ore) {
         addXP(this.player, "mining", ore.xpReward, this, this.miningXPBar.update.bind(this.miningXPBar), [], ORES)
+        this.createOreIcons()
 
         const oreTypeKey = ore.sprite.texture.key.replace("Ore", "").toLowerCase()
         const dropQuantity = Phaser.Math.Between(1, 3)
@@ -265,7 +344,7 @@ export class MiningScene extends Phaser.Scene {
             ore.container.x,
             ore.container.y - 100,
             `+${ore.xpReward} XP`,
-            { fontSize: '18px', color: '#00ffcc', fontStyle: 'bold'}
+            { fontSize: '18px', color: '#00ffcc', fontStyle: 'bold' }
         ).setOrigin(0.5)
 
         this.tweens.add({
@@ -279,44 +358,45 @@ export class MiningScene extends Phaser.Scene {
 
         // respawn
         this.time.delayedCall(2000, () => {
-            const nextOre = this.getCurrentOreType()
+            const nextOre = ORES.find(o => o.name === this.activeOreName)
             this.activeNode = this.spawnOreNode(nextOre)
         })
 
         // persist data
         fetch(`${API_BASE}/saveProgress`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                username: this.player.username,
-                stats: {
-                    combatLevel: this.player.skills.combat.level,
-                    combatXP: this.player.skills.combat.xp,
-                    coinMultLevel: this.player.upgrades.coinMultiplier.level,
-                    dpsMultLevel: this.player.upgrades.dpsMultiplier.level,
-                    clickMultLevel: this.player.upgrades.clickMultiplier.level,
-                    miningLevel: this.player.skills.mining.level,
-                    miningXP: this.player.skills.mining.xp,
-                    oreMultLevel: this.player.upgrades.oreMultiplier.level,
-                    oreDpsMultLevel: this.player.upgrades.oreDpsMultiplier.level,
-                    oreClickMultLevel: this.player.upgrades.oreClickMultiplier.level,
-                    woodcuttingLevel: this.player.skills.woodcutting?.level ?? 0,
-                    logMultLevel: this.player.upgrades.logMultiplier?.level ?? 0,
-                    logDpsMultLevel: this.player.upgrades.logDpsMultiplier?.level ?? 0,
-                    logClickMultLevel: this.player.upgrades.logClickMultiplier?.level ?? 0
-                },
-                inventory: {
-                    coins: this.player.inventory.coins ?? 0,
-                    copperOre: this.player.inventory.copperOre ?? 0,
-                    ironOre: this.player.inventory.ironOre ?? 0,
-                    goldOre: this.player.inventory.goldOre ?? 0,
-                    logs: this.player.inventory.logs ?? 0,
-                    axe: this.player.inventory.axe ?? 0,
-                    pickaxe: this.player.inventory.pickaxe ?? 0,
-                    sword: this.player.inventory.sword ?? 0
-                }
-            })
-        }).catch(err => console.error("Failed to save progress:", err));
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: this.player.username,
+          stats: {
+            combatLevel: this.player.skills.combat.level,
+            combatXP: this.player.skills.combat.xp,
+            coinMultLevel: this.player.upgrades.coinMultiplier.level,
+            dpsMultLevel: this.player.upgrades.dpsMultiplier.level,
+            clickMultLevel: this.player.upgrades.clickMultiplier.level,
+            miningLevel: this.player.skills.mining.level,
+            miningXP: this.player.skills.mining.xp,
+            oreMultLevel: this.player.upgrades.oreMultiplier.level,
+            oreDpsMultLevel: this.player.upgrades.oreDpsMultiplier.level,
+            oreClickMultLevel: this.player.upgrades.oreClickMultiplier.level,
+            smithingLevel: this.player.skills.smithing.level,
+            smithingXP: this.player.skills.smithing.xp,
+          },
+          inventory: {
+            coins: this.player.inventory.coins ?? 0,
+            copperOre: this.player.inventory.copperOre ?? 0,
+            ironOre: this.player.inventory.ironOre ?? 0,
+            goldOre: this.player.inventory.goldOre ?? 0,
+            copperBar: this.player.inventory.copperBar ?? 0,
+            ironBar: this.player.inventory.ironBar ?? 0,
+            goldBar: this.player.inventory.goldBar ?? 0,
+            swordTier: this.player.stats.swordTier ?? 1,
+            pickaxeTier: this.player.stats.pickaxeTier ?? 1,
+          }
+        })
+      })
+        .catch(err => console.error("Failed to save progress:", err));
+        this.createOreIcons()
     }
     // ore item logic after ore is broken
     dropOre(x, y, oreType, quantity = 1) {
@@ -334,6 +414,7 @@ export class MiningScene extends Phaser.Scene {
                 y + yOffset,
                 textureMap[oreType]
             )
+            oreSprite.oreType = oreType
             oreSprite.setBounce(0.5)
             oreSprite.setCollideWorldBounds(true)
             oreSprite.setVelocity(
@@ -343,17 +424,21 @@ export class MiningScene extends Phaser.Scene {
             this.ores.add(oreSprite)
             this.time.delayedCall(6000, () => {
                 if (oreSprite.active) {
-                    this.pickupOre(oreSprite, oreType)
+                    this.pickupOre(oreSprite)
                 }
             })
         }
     }
     //picks ore up via cursor or automatically after time
-    pickupOre(oreSprite, oreType) {
-        if (!oreSprite.active) {
+    pickupOre(sprite) {
+        if (!sprite.active) {
             return
         }
-        oreSprite.destroy()
+        const oreType = sprite.oreType
+        if(!oreType) {
+            return
+        }
+        sprite.destroy()
 
         const keyMap = {
             copper: "copperOre",
@@ -365,8 +450,8 @@ export class MiningScene extends Phaser.Scene {
         updateInventoryUI(this)
 
         const pickupText = this.add.text(
-            oreSprite.x,
-            oreSprite.y - 20,
+            sprite.x,
+            sprite.y - 20,
             `+1 ${oreType} ore`,
             { fontSize: '18px', color: '#ffcc00', fontStyle: 'bold' }
         ).setOrigin(0.5)
@@ -380,37 +465,37 @@ export class MiningScene extends Phaser.Scene {
             onComplete: () => pickupText.destroy()
         })
         fetch(`${API_BASE}/saveProgress`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                username: this.player.username,
-                stats: {
-                    combatLevel: this.player.skills.combat.level,
-                    combatXP: this.player.skills.combat.xp,
-                    coinMultLevel: this.player.upgrades.coinMultiplier.level,
-                    dpsMultLevel: this.player.upgrades.dpsMultiplier.level,
-                    clickMultLevel: this.player.upgrades.clickMultiplier.level,
-                    miningLevel: this.player.skills.mining.level,
-                    miningXP: this.player.skills.mining.xp,
-                    oreMultLevel: this.player.upgrades.oreMultiplier.level,
-                    oreDpsMultLevel: this.player.upgrades.oreDpsMultiplier.level,
-                    oreClickMultLevel: this.player.upgrades.oreClickMultiplier.level,
-                    woodcuttingLevel: this.player.skills.woodcutting?.level ?? 0,
-                    logMultLevel: this.player.upgrades.logMultiplier?.level ?? 0,
-                    logDpsMultLevel: this.player.upgrades.logDpsMultiplier?.level ?? 0,
-                    logClickMultLevel: this.player.upgrades.logClickMultiplier?.level ?? 0
-                },
-                inventory: {
-                    coins: this.player.inventory.coins ?? 0,
-                    copperOre: this.player.inventory.copperOre ?? 0,
-                    ironOre: this.player.inventory.ironOre ?? 0,
-                    goldOre: this.player.inventory.goldOre ?? 0,
-                    logs: this.player.inventory.logs ?? 0,
-                    axe: this.player.inventory.axe ?? 0,
-                    pickaxe: this.player.inventory.pickaxe ?? 0,
-                    sword: this.player.inventory.sword ?? 0
-                }
-            })
-        }).catch(err => console.error("Failed to save progress:", err));
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: this.player.username,
+          stats: {
+            combatLevel: this.player.skills.combat.level,
+            combatXP: this.player.skills.combat.xp,
+            coinMultLevel: this.player.upgrades.coinMultiplier.level,
+            dpsMultLevel: this.player.upgrades.dpsMultiplier.level,
+            clickMultLevel: this.player.upgrades.clickMultiplier.level,
+            miningLevel: this.player.skills.mining.level,
+            miningXP: this.player.skills.mining.xp,
+            oreMultLevel: this.player.upgrades.oreMultiplier.level,
+            oreDpsMultLevel: this.player.upgrades.oreDpsMultiplier.level,
+            oreClickMultLevel: this.player.upgrades.oreClickMultiplier.level,
+            smithingLevel: this.player.skills.smithing.level,
+            smithingXP: this.player.skills.smithing.xp,
+          },
+          inventory: {
+            coins: this.player.inventory.coins ?? 0,
+            copperOre: this.player.inventory.copperOre ?? 0,
+            ironOre: this.player.inventory.ironOre ?? 0,
+            goldOre: this.player.inventory.goldOre ?? 0,
+            copperBar: this.player.inventory.copperBar ?? 0,
+            ironBar: this.player.inventory.ironBar ?? 0,
+            goldBar: this.player.inventory.goldBar ?? 0,
+            swordTier: this.player.stats.swordTier ?? 1,
+            pickaxeTier: this.player.stats.pickaxeTier ?? 1,
+          }
+        })
+      })
+        .catch(err => console.error("Failed to save progress:", err));
     }
 }

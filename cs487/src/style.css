@@ -123,12 +123,20 @@ body {
   color: var(--buttonHover);
 }
 
-/* GAME PAGE */
-#gamePage {
+
+/* Game's UI*/
+#gameContainer {
+  position: relative;
   width: 928px;
   height: 793px;
   margin: 0 auto;
-  position: relative;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+#gameContainer.visible {
+  display: block;
+  opacity: 1;
 }
 
 #gameCanvas {
@@ -138,95 +146,89 @@ body {
   display: block;
   z-index: 1;
 }
-
-/* GAME UI */
-#gameContainer {
-  display: none;
+#gameContainer canvas {
   position: relative;
-  width: 928px;
-  height: 793px;
-  margin: 0 auto;
-  z-index: 0;
-  pointer-events: auto;
+  z-index: 1;
 }
 
-/* Inventory Toggle Button */
-#inventoryToggle {
+/* Left vertical navigation (skills + inventory) */
+#leftNav {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 1000;
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: none;
-  background-color: var(--buttonColor);
-  color: var(--lightColor);
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s;
+  top: 0;
+  left: -70px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  z-index: 5;
 }
 
-#inventoryToggle:hover {
-  background-color: var(--buttonHover);
-  transform: translateY(-2px);
+/* Right-side single button (only upgrade shop exists here for now)*/
+#rightNav {
+  position: absolute;
+  top: 0;
+  right: -70px;
+  z-index: 5;
+}
+
+/* Shared button styling */
+.nav-btn {
+  background: rgba(30, 60, 255, 0.2);
+  border: 2px solid #3a6fff;
+  border-radius: 12px;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-btn:hover {
+  background: rgba(80, 120, 255, 0.4);
+  transform: scale(1.05);
+}
+
+.nav-btn img {
+  width: 32px;
+  height: 32px;
+  pointer-events: none;
+}
+/* Game Wrapper */
+#gameWrapper.hidden {
+  display: none;
+}
+#gameWrapper {
+  position: relative;
+  width: fit-content;
+  margin: 0 auto;
+  top: 20px;
+  z-index: 2;
 }
 /* Inventory Menu*/
 #inventoryUI {
   position: absolute;
-  top: 50px; 
-  left: 10px;
+  top: 5px; 
+  left: 5px;
   display: none; 
   background-color: rgba(0,0,0,0.85);
   padding: 15px;
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-  z-index: 9;
+  z-index: 10;
   display: grid;
   gap: 8px;
-}
-/* Upgrade Menu Toggle Button */
-#upgradeMenuButton {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 1000;
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: none;
-  background-color: var(--buttonColor);
-  color: var(--lightColor);
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s;
 }
 #upgradeMenu {
   position: absolute;
   top: 50px; 
   right: 10px;
-  z-index: 9;
+  z-index: 10;
   display: none;
   background-color: rgba(0,0,0,0.85);
   padding: 15px;
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-}
-
-#upgradeMenu button {
-  width: 100%;
-  margin-bottom: 10px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: none;
-  background-color: var(--buttonColor);
-  color: var(--lightColor);
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-#upgradeMenu button:hover {
-  background-color: var(--buttonHover);
-  transform: translateY(-2px);
 }
 
 #upgradeMenu p {
@@ -235,45 +237,4 @@ body {
   font-size: 14px;
   text-align: center;
 }
-/* Combat Button */
-#combatButton {
-  display: none;
-  position: absolute;
-  top: 10px;
-  right: 150px;
-  z-index: 1000;
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: none;
-  background-color: var(--buttonColor);
-  color: var(--lightColor);
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s;
-}
 
-#combatButton:hover {
-  background-color: var(--buttonHover);
-  transform: translateY(-2px);
-}
-/* Mining Button */
-#miningButton {
-  display: none; 
-  position: absolute;
-  top: 10px;
-  right: 150px; 
-  z-index: 1000;
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: none;
-  background-color: var(--buttonColor);
-  color: var(--lightColor);
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-#miningButton:hover {
-  background-color: var(--buttonHover);
-  transform: translateY(-2px);
-}

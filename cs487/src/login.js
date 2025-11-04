@@ -80,13 +80,25 @@ function showAuthMessage(message, type = "info") {
 
 // Start Phaser game after successful login/signup
 function startGame(user) {
-    document.getElementById("authWrapper").style.display = "none";
-    document.getElementById("gameContainer").style.display = "block"
+  const authWrapper = document.getElementById("authWrapper");
+  const gameWrapper = document.getElementById("gameWrapper");
+  const gameContainer = document.getElementById("gameContainer");
+  authWrapper.style.display = "none";
 
-    window.currentUser = user;
+  gameWrapper.classList.remove("hidden");
 
-    // Initialize Phaser game
-    import('./main.js').then(module => {
-        module.startGame(user);
-    });
+  window.currentUser = user;
+
+  import("./main.js").then(mod => {
+    mod.startGame(user);
+
+    const check = setInterval(() => {
+      const canvas = gameContainer.querySelector("canvas");
+      if (canvas && canvas.width > 0 && canvas.height > 0) {
+        clearInterval(check);
+        gameContainer.style.removeProperty("display");
+        gameContainer.classList.add("visible");
+      }
+    }, 100);
+  });
 }

@@ -30,10 +30,10 @@ db.run(`CREATE TABLE IF NOT EXISTS user_stats (
     oreMultLevel INTEGER DEFAULT 0,
     oreDpsMultLevel INTEGER DEFAULT 0,
     oreClickMultLevel INTEGER DEFAULT 0,
-    woodcuttingLevel INTEGER DEFAULT 0,
-    logMultLevel INTEGER DEFAULT 0,
-    logDpsMultLevel INTEGER DEFAULT 0,
-    logClickMultLevel INTEGER DEFAULT 0,
+    smithingLevel INTEGER DEFAULT 1,
+    smithingXP INTEGER DEFAULT 0,
+    swordTier INTEGER DEFAULT 1,
+    pickaxeTier INTEGER DEFAULT 1,
     FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 )`);
 //items table
@@ -56,7 +56,7 @@ db.run(`CREATE TABLE IF NOT EXISTS user_inventory (
 
 )`);
 
-const REQUIRED_ITEMS = ["Coin", "Logs", "Copper Ore", "Iron Ore", "Gold Ore", "Axe", "Pickaxe", "Sword"];
+const REQUIRED_ITEMS = ["Coin", "Copper Bar", "Iron Bar", "Gold Bar", "Copper Ore", "Iron Ore", "Gold Ore", "Pickaxe", "Sword"];
 
 function ensureBaseItemsExist() {
     REQUIRED_ITEMS.forEach((itemName) => {
@@ -160,19 +160,19 @@ app.post("/saveProgress", (req, res) => {
     const {
       combatLevel, combatXP, coinMultLevel, dpsMultLevel, clickMultLevel,
       miningLevel, miningXP, oreMultLevel, oreDpsMultLevel, oreClickMultLevel,
-      woodcuttingLevel, logMultLevel, logDpsMultLevel, logClickMultLevel
+      smithingLevel, smithingXP, swordTier, pickaxeTier
     } = stats;
 
     db.run(
       `UPDATE user_stats
        SET combatLevel=?, combatXP=?, coinMultLevel=?, dpsMultLevel=?, clickMultLevel=?,
            miningLevel=?, miningXP=?, oreMultLevel=?, oreDpsMultLevel=?, oreClickMultLevel=?,
-           woodcuttingLevel=?, logMultLevel=?, logDpsMultLevel=?, logClickMultLevel=?
+           smithingLevel=?, smithingXP=?, swordTier=?, pickaxeTier=?
        WHERE user_id=?`,
       [
         combatLevel ?? 1, combatXP ?? 0, coinMultLevel ?? 0, dpsMultLevel ?? 0, clickMultLevel ?? 0,
         miningLevel ?? 1, miningXP ?? 0, oreMultLevel ?? 0, oreDpsMultLevel ?? 0, oreClickMultLevel ?? 0,
-        woodcuttingLevel ?? 0, logMultLevel ?? 0, logDpsMultLevel ?? 0, logClickMultLevel ?? 0,
+        smithingLevel ?? 1, smithingXP ?? 0, swordTier ?? 0, pickaxeTier ?? 0,
         user.id
       ],
       (err2) => {
@@ -187,8 +187,9 @@ app.post("/saveProgress", (req, res) => {
           copperOre: "Copper Ore",
           ironOre: "Iron Ore",
           goldOre: "Gold Ore",
-          logs: "Logs",
-          axe: "Axe",
+          copperBar: "Copper Bar",
+          ironBar: "Iron Bar",
+          goldBar: "Gold Bar",
           pickaxe: "Pickaxe",
           sword: "Sword"
         };

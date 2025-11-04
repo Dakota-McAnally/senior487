@@ -1,12 +1,14 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/assets/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Realm Defender</title>
-  </head>
-  <body>
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.ico" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Realm Defender</title>
+</head>
+
+<body>
   <div id="authWrapper">
     <div id="authPage">
       <h2 id="formTitle">Login</h2>
@@ -22,16 +24,36 @@
       </p>
     </div>
   </div>
-  <div id="gameContainer" style="position: relative; width: 928px; height: 793px; margin: 0 auto;">
-    <!-- phaser canvas used here -->
-    <button id="inventoryToggle">Inventory</button>
-    <div id="inventoryUI"></div>
-    <button id="upgradeMenuButton">Upgrade Shop</button>
-    <button id="combatButton">Combat</button>
-    <button id="miningButton">Mining</button>
-    <div id="upgradeMenu" style="display:none"></div>
+  <div id="gameWrapper" class="hidden">
+    <div id="gameContainer" style="position: relative; width: 928px; height: 793px; margin: 0 auto;">
+      <div id="leftNav">
+        <button id="inventoryToggle" class="nav-btn" title="Inventory">
+          <img src="/assets/icons/inventory.png" alt="Inventory">
+        </button>
 
+        <button id="combatButton" class="nav-btn" title="Combat">
+          <img src="/assets/icons/combat.png" alt="Combat">
+        </button>
+
+        <button id="miningButton" class="nav-btn" title="Mining">
+          <img src="/assets/icons/mining.png" alt="Mining">
+        </button>
+
+        <button id="smithingButton" class="nav-btn" title="Smithing">
+          <img src="/assets/icons/smithing.png" alt="Smithing">
+        </button>
+      </div>
+
+      <div id="rightNav">
+        <button id="upgradeMenuButton" class="nav-btn" title="Shop">
+          <img src="/assets/icons/upgrade_shop.png" alt="Shop">
+        </button>
+      </div>
+    </div>
+    <div id="upgradeMenu" style="display:none"></div>
+    <div id="inventoryUI"></div>
   </div>
-  <script type ="module" src="/src/login.js"></script>
-  </body>
+  <script type="module" src="/src/login.js"></script>
+</body>
+
 </html>

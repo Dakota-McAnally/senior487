@@ -1,3 +1,5 @@
+Smithing instead of woodcutting
+
 Make 3 ore types useful --> there cant be copper ore that becomes obsolete, because whats the point of adding it --> Maybe the player can choose which ore to mine? 
 
 Upgrade Shop should reflect Ore related upgrades costing Ore, not coins
