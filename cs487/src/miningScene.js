@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 import { addXP, createXPBar } from './utils/xp.js'
-import { updateInventoryUI, getUpgradeCost, recomputeAllUpgradeCosts } from './main.js'
+import { updateInventoryUI, getUpgradeCost, recomputeAllUpgradeCosts, getToolStats } from './main.js'
 import { showUI, setupGlobalButtons } from './utils/uiManager.js'
 
 
@@ -21,7 +21,7 @@ const ORES = [
         texture: "ironOre",
         nodeHealth: 290,
         xpReward: 60,
-        oreMultiplier: 1.85
+        oreMultiplier: 2
     },
     {
         name: "gold",
@@ -29,7 +29,7 @@ const ORES = [
         texture: "goldOre",
         nodeHealth: 680,
         xpReward: 120,
-        oreMultiplier: 2.85
+        oreMultiplier: 3
     }
 ]
 
@@ -109,7 +109,8 @@ export class MiningScene extends Phaser.Scene {
             callback: () => {
                 if (this.activeNode && this.activeNode.health > 0) {
                     this.swingPickaxe()
-                    this.activeNode.takeDamage(this.player.dps * this.player.oreDpsMultiplier)
+                    const pickaxeStats = getToolStats(this.player, "pickaxe")
+                    this.activeNode.takeDamage(pickaxeStats.miningPower * this.player.oreDpsMultiplier)
                 }
             }
         })
@@ -289,7 +290,8 @@ export class MiningScene extends Phaser.Scene {
 
         // ore mining click event
         oreSprite.on("pointerdown", () => {
-            this.mineOre(ore, this.player.dps * this.player.oreClickMultiplier)
+            const pickaxeStats = getToolStats(this.player, "pickaxe")
+            this.mineOre(ore, pickaxeStats.miningPower * this.player.oreClickMultiplier)
         })
 
         // ore health visual updates
@@ -372,39 +374,7 @@ export class MiningScene extends Phaser.Scene {
         })
 
         // persist data
-        fetch(`${API_BASE}/saveProgress`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: this.player.username,
-          stats: {
-            combatLevel: this.player.skills.combat.level,
-            combatXP: this.player.skills.combat.xp,
-            coinMultLevel: this.player.upgrades.coinMultiplier.level,
-            dpsMultLevel: this.player.upgrades.dpsMultiplier.level,
-            clickMultLevel: this.player.upgrades.clickMultiplier.level,
-            miningLevel: this.player.skills.mining.level,
-            miningXP: this.player.skills.mining.xp,
-            oreMultLevel: this.player.upgrades.oreMultiplier.level,
-            oreDpsMultLevel: this.player.upgrades.oreDpsMultiplier.level,
-            oreClickMultLevel: this.player.upgrades.oreClickMultiplier.level,
-            smithingLevel: this.player.skills.smithing.level,
-            smithingXP: this.player.skills.smithing.xp,
-            swordTier: this.player.stats.swordTier ?? 1,
-            pickaxeTier: this.player.stats.pickaxeTier ?? 1,
-          },
-          inventory: {
-            coins: this.player.inventory.coins ?? 0,
-            copperOre: this.player.inventory.copperOre ?? 0,
-            ironOre: this.player.inventory.ironOre ?? 0,
-            goldOre: this.player.inventory.goldOre ?? 0,
-            copperBar: this.player.inventory.copperBar ?? 0,
-            ironBar: this.player.inventory.ironBar ?? 0,
-            goldBar: this.player.inventory.goldBar ?? 0,
-          }
-        })
-      })
-        .catch(err => console.error("Failed to save progress:", err));
+        this.saveProgress()
         this.createOreIcons()
     }
     // ore item logic after ore is broken
@@ -475,6 +445,9 @@ export class MiningScene extends Phaser.Scene {
             ease: "Cubic.easeOut",
             onComplete: () => pickupText.destroy()
         })
+       this.saveProgress()
+    }
+    saveProgress() {
         fetch(`${API_BASE}/saveProgress`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -506,7 +479,6 @@ export class MiningScene extends Phaser.Scene {
             goldBar: this.player.inventory.goldBar ?? 0,
           }
         })
-      })
-        .catch(err => console.error("Failed to save progress:", err));
+      }).catch(err => console.error("Failed to save progress:", err));
     }
 }

@@ -97,7 +97,21 @@ app.post("/signup", async (req, res) => {
                 if (err2)
                     console.error("Error creating default user stats: ", err2);
             });
-            res.json({ success: true, userId });
+          db.all(`SELECT item_id, name FROM items`, (err, rows) => {
+            if (err) return;
+
+            rows.forEach(item => {
+              db.run(
+                `INSERT INTO user_inventory (user_id, item_id, quantity)
+       VALUES (?, ?, 0)`,
+                [userId, item.item_id],
+                (err2) => {
+                  if (err2) console.error("Failed to insert base inventory row:", item.name, err2);
+                }
+              );
+            });
+          });
+          res.json({ success: true, userId });
 
         }
     );
