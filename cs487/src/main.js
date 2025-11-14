@@ -290,7 +290,6 @@ export function startGame(user) {
       const result = addXP(this.scene.player, "combat", this.xpReward, this.scene, this.scene.combatXPBar.update.bind(this.scene.combatXPBar), MONSTERS)
       if (result.leveledUp && result.unlocked) {
         console.log(`Unlocked new monster: ${result.unlocked}`)
-        this.killEnemy();
       }
       this.scene.combatXPBar.update(this.scene.player)
       this.scene.coinDrop(this.container.x, this.container.y)
@@ -595,7 +594,6 @@ export function startGame(user) {
           "Authorization": `Bearer ${localStorage.getItem("token")}`
         },
         body: JSON.stringify({
-          username: this.player.username,
           stats: {
             combatLevel: this.player.skills.combat.level,
             combatXP: this.player.skills.combat.xp,

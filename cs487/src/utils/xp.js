@@ -41,7 +41,6 @@ export function addXP(player, skill, amount, scene, updateUI, monsters = [], ore
           "Authorization": `Bearer ${localStorage.getItem("token")}`
         },
         body: JSON.stringify({
-          username: this.player.username,
           stats: {
             combatLevel: this.player.skills.combat.level,
             combatXP: this.player.skills.combat.xp,

@@ -454,7 +454,6 @@ export class MiningScene extends Phaser.Scene {
           "Authorization": `Bearer ${localStorage.getItem("token")}`
         },
         body: JSON.stringify({
-          username: this.player.username,
           stats: {
             combatLevel: this.player.skills.combat.level,
             combatXP: this.player.skills.combat.xp,
