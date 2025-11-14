@@ -1059,6 +1059,7 @@ export function startGame(user) {
       autoCenter: Phaser.Scale.CENTER_BOTH,
       width: sizes.width,
       height: sizes.height,
+      expandParent: true,
     },
     debug: true,
     parent: "gameContainer",
@@ -1069,7 +1070,7 @@ export function startGame(user) {
         debug: false
       }
     },
-    canvasStyle: "position: absolute top: 0 left: 0 z-index: 0"
+    canvasStyle: "position: absolute; top: 0 left: 0; z-index: 0;"
   }
 
   const game = new Phaser.Game(config)

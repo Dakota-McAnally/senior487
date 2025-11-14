@@ -6,19 +6,6 @@ const submitButton = document.getElementById("submitButton")
 const toggleText = document.getElementById("toggleText")
 const authMessage = document.getElementById("authMessage")
 
-const savedUser = localStorage.getItem("user");
-
-if (savedUser) {
-  const user = JSON.parse(savedUser);
-  console.log("Auto-login user:", user);
-
-  // Hide auth UI
-  document.getElementById("authWrapper").style.display = "none";
-  document.getElementById("gameWrapper").classList.remove("hidden");
-
-  // Start game
-  import("./main.js").then(mod => mod.startGame(user));
-}
 
 const API_BASE = import.meta.env.VITE_API_BASE || ""
 
@@ -69,7 +56,6 @@ authForm.addEventListener("submit", async (e) => {
       showAuthMessage(user.error, "error");
     } else {
       showAuthMessage("Login successful! Loading game...", "success");
-      localStorage.setItem("user", JSON.stringify(user));
       setTimeout(() => startGame(user), 500);
     }
   } else {
@@ -78,7 +64,6 @@ authForm.addEventListener("submit", async (e) => {
       showAuthMessage(result.error, "error");
     } else {
       showAuthMessage("Sign up successful! Please log in.", "success");
-      localStorage.setItem("user", JSON.stringify(user));
       setTimeout(() => startGame(user), 500);
     }
   }

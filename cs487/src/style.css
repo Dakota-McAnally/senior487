@@ -127,12 +127,13 @@ body {
 /* Game's UI*/
 #gameContainer {
   position: relative;
-  width: 928px;
-  height: 793px;
+  width: 100vw;
+  height: 100vh;
   margin: 0 auto;
   z-index: 2;
   opacity: 0;
   transition: opacity 0.4s ease;
+  overflow: hidden;
 }
 #gameContainer.visible {
   display: block;
