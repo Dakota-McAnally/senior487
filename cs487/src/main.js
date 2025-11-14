@@ -105,6 +105,8 @@ export function getRequiredOreForUpgrade(level) {
 export function startGame(user) {
   console.log("startGame called with user: ", user)
   console.log(user)
+  console.log("LOGIN INVENTORY:", user.inventory);
+  console.log("LOGIN COINS:", user.inventory?.coins);
 
   const sizes = {
     //background size
@@ -377,26 +379,12 @@ export function startGame(user) {
       this.groundY = 670
       //events
       this.events.on("coinsUpdated", (newCointAmount) => {
-        this.player.coins = newCointAmount
+        this.player.inventory.coins = newCointAmount
         updateInventoryUI(this)
         const inventoryUI = document.getElementById("inventoryUI")
         if (inventoryUI && inventoryUI.style.display != "none")
           updateInventoryUI(this)
       })
-      //inventory structure
-      if (!this.player.inventory) {
-        this.player.inventory = {
-          coins: this.player.coins ?? 0,
-          copperOre: 0,
-          ironOre: 0,
-          goldOre: 0,
-          copperBar: 0,
-          ironBar: 0,
-          goldBar: 0,
-          pickaxe: null,
-          sword: null,
-        }
-      }
 
       //cost scaling for upgrades based on level + base cost
       if (!this.player.upgrades) {
@@ -593,8 +581,8 @@ export function startGame(user) {
       const monster = this.getCurrentMonsterType()
       const baseCoinValue = 15 * monster.coinMultiplier
       const coinsGained = Math.floor(baseCoinValue * this.player.coinMultiplier)
-      this.player.coins += coinsGained
-      this.player.inventory.coins = this.player.coins
+      this.player.inventory.coins += coinsGained
+      this.player.inventory.coins = this.player.inventory.coins
       updateInventoryUI(this)
       this.showCoinText(coin.x, coin.y, `+${coinsGained} Coin${coinsGained > 1 ? 's' : ''}`, "#ffffff") //Coin${coinsGained > 1 ? 's' : ''}` Determine if coins are plural or singular (1 coin or 2 coin(s))
 
@@ -890,7 +878,7 @@ export function startGame(user) {
   //     }
 
   //     // Missing resources check (subtract what the player has) 
-  //     const coinsShort = Math.max(0, currentCoinCost - (this.player.coins ?? 0));
+  //     const coinsShort = Math.max(0, currentCoinCost - (this.player.inventory.coins ?? 0));
   //     const haveOre = isOreUpgrade ? (this.player.inventory?.[requiredOreKey] ?? 0) : 0;
   //     const oreShort = isOreUpgrade ? Math.max(0, requiredOreAmount - haveOre) : 0;
 
@@ -903,9 +891,9 @@ export function startGame(user) {
   //     }
 
   //     // Take resources
-  //     this.player.coins = Number(this.player.coins) || 0
-  //     this.player.coins -= currentCoinCost;
-  //     this.player.inventory.coins = this.player.coins;
+  //     this.player.inventory.coins = Number(this.player.inventory.coins) || 0
+  //     this.player.inventory.coins -= currentCoinCost;
+  //     this.player.inventory.coins = this.player.inventory.coins;
 
   //     if (isOreUpgrade) {
   //       this.player.inventory[requiredOreKey] -= requiredOreAmount;
@@ -952,7 +940,7 @@ export function startGame(user) {
   //     this.toast(`${names[upgradeType]} upgraded!`, "#ffff99")
 
   //     // Let other scenes know (for the inventory panel)
-  //     this.events.emit("coinsUpdated", this.player.coins);
+  //     this.events.emit("coinsUpdated", this.player.inventory.coins);
 
   //     // save to db
   //     fetch(`${API_BASE}/saveProgress`, {
@@ -997,7 +985,7 @@ export function startGame(user) {
   const pickaxeData = TOOL_TIERS.pickaxe[pickaxeTier]
   window.currentUser = {
     username: user.username,
-    coins: user.coins ?? 0,
+    coins: user.inventory?.coins ?? 0,
     coinMultiplier: 1.00,
     dps: swordData.dps,
     dpsMultiplier: 1.00,
@@ -1009,7 +997,7 @@ export function startGame(user) {
 
     // Player inventory
     inventory: {
-      coins: user.inventory?.coins ?? user.inventory?.coin ?? 0,
+      coins: user.inventory?.coins ?? 0,
       copperOre: user.inventory?.copperOre ?? 0,
       ironOre: user.inventory?.ironOre ?? 0,
       goldOre: user.inventory?.goldOre ?? 0,

@@ -108,7 +108,7 @@ export class SmithingScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true })
       .on("pointerdown", () => this.openAnvilPanel());
 
-    // Hints (nudged off the props for readability)
+    // Hints
     this.makeHint(155, 520, "Smelt ores into bars");
     this.makeHint(464, 520, "Craft tools at the anvil");
 
