@@ -483,7 +483,6 @@ export class SmithingScene extends Phaser.Scene {
     else if(this.currentPanelType === "anvil") {
       this.openAnvilPanel();
     }
-    }
   }
   // database save function
   saveProgress() {
