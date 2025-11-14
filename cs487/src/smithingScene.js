@@ -346,7 +346,7 @@ export class SmithingScene extends Phaser.Scene {
       const disabled = oreAmount < amt;
       this.addButton(
         panel,
-        x + offset,
+        x,
         y,
         labels[i],
         () => {
