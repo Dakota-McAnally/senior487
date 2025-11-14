@@ -450,7 +450,9 @@ export class MiningScene extends Phaser.Scene {
     saveProgress() {
         fetch(`${API_BASE}/saveProgress`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
         body: JSON.stringify({
           username: this.player.username,
           stats: {
@@ -479,6 +481,7 @@ export class MiningScene extends Phaser.Scene {
             goldBar: this.player.inventory.goldBar ?? 0,
           }
         })
-      }).catch(err => console.error("Failed to save progress:", err));
+      })
+        .catch(err => console.error("Failed to save progress:", err))
     }
 }

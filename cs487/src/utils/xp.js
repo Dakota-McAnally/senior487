@@ -37,21 +37,39 @@ export function addXP(player, skill, amount, scene, updateUI, monsters = [], ore
     }
     fetch(`${API_BASE}/saveProgress`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
         body: JSON.stringify({
-            username: player.username,
-            coins: Math.floor(player.coins),
-            stats: {
-                coinMultLevel: player.upgrades.coinMultiplier.level,
-                dpsMultLevel: player.upgrades.dpsMultiplier.level,
-                clickMultLevel: player.upgrades.clickMultiplier.level,
-                combatLevel: player.skills.combat.level,
-                combatXP: player.skills.combat.xp,
-                miningLevel: player.skills.mining.level,
-                miningXP: player.skills.mining.xp
-            }
+          username: this.player.username,
+          stats: {
+            combatLevel: this.player.skills.combat.level,
+            combatXP: this.player.skills.combat.xp,
+            coinMultLevel: this.player.upgrades.coinMultiplier.level,
+            dpsMultLevel: this.player.upgrades.dpsMultiplier.level,
+            clickMultLevel: this.player.upgrades.clickMultiplier.level,
+            miningLevel: this.player.skills.mining.level,
+            miningXP: this.player.skills.mining.xp,
+            oreMultLevel: this.player.upgrades.oreMultiplier.level,
+            oreDpsMultLevel: this.player.upgrades.oreDpsMultiplier.level,
+            oreClickMultLevel: this.player.upgrades.oreClickMultiplier.level,
+            smithingLevel: this.player.skills.smithing.level,
+            smithingXP: this.player.skills.smithing.xp,
+            swordTier: this.player.stats.swordTier ?? 1,
+            pickaxeTier: this.player.stats.pickaxeTier ?? 1,
+          },
+          inventory: {
+            coins: this.player.inventory.coins ?? 0,
+            copperOre: this.player.inventory.copperOre ?? 0,
+            ironOre: this.player.inventory.ironOre ?? 0,
+            goldOre: this.player.inventory.goldOre ?? 0,
+            copperBar: this.player.inventory.copperBar ?? 0,
+            ironBar: this.player.inventory.ironBar ?? 0,
+            goldBar: this.player.inventory.goldBar ?? 0,
+          }
         })
-    }).catch(err => console.error("Failed to save coins: ", err))
+      })
+        .catch(err => console.error("Failed to save progress:", err))
     return { leveledUp, unlocked: unlockedName }
 }
 
