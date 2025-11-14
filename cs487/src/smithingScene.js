@@ -2,8 +2,7 @@ import Phaser from 'phaser';
 import { addXP, createXPBar } from './utils/xp.js';
 import { showUI } from './utils/uiManager.js';
 import { updateInventoryUI, recomputeAllUpgradeCosts } from './main.js';
-
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3001";
+const API_BASE = import.meta.env.VITE_API_BASE || ""
 
 // consant xp/bar conversion
 const SMELT_RATE = 1; // 1 ore -> 1 bar

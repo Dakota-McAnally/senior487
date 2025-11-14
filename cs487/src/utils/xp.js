@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3001"
+const API_BASE = import.meta.env.VITE_API_BASE || ""
 
 export function getXPForNextLevel(level) {
     return Math.floor(50 * Math.pow(level, 1.5))
