@@ -511,7 +511,7 @@ export function startGame(user) {
           }
           this.tweens.add({
             targets: enemy.container,
-            x: enemy.contianer.x + Phaser.Math.Between(-4, 4),
+            x: enemy.container.x + Phaser.Math.Between(-4, 4),
             duration: 50,
             yoyo: true,
             ease: "Sine.easeInOut",
