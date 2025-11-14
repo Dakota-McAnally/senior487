@@ -505,15 +505,17 @@ export function startGame(user) {
         yoyo: true,
         ease: "Cubic.easeInOut",
         onYoyo: () => {
-          if (this.getCurrentMonsterType && this.getCurrentMonsterType.container) {
-            this.tweens.add({
-              targets: this.getCurrentMonsterType.container,
-              x: `+=${Phaser.Math.Between(-4, 4)}`,
-              duration: 50,
-              yoyo: true,
-              ease: "Sine.easeInOut"
-            })
+          const enemy = this.enemies?.[0]
+          if(!enemy || !enemy.container) {
+            return
           }
+          this.tweens.add({
+            targets: enemy.container,
+            x: enemy.contianer.x + Phaser.Math.Between(-4, 4),
+            duration: 50,
+            yoyo: true,
+            ease: "Sine.easeInOut",
+          })
         },
         onComplete: () => {
           this.isSwinging = false
