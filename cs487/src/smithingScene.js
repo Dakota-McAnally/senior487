@@ -307,7 +307,7 @@ export class SmithingScene extends Phaser.Scene {
 
       row.add([oreIcon, oreAmt, arrow, barIcon, barAmt]);
 
-      this.createSmeltButtons(panel, col.x + 120, 300, oreKey, barKey, col.mat, oreAmount);
+      this.createSmeltButtons(panel, col.x, 340, oreKey, barKey, col.mat, oreAmount);
     });
 
 
