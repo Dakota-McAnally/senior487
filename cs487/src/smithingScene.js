@@ -308,7 +308,7 @@ export class SmithingScene extends Phaser.Scene {
 
       row.add([oreIcon, oreAmt, arrow, barIcon, barAmt]);
 
-      this.createSmeltButtons(panel, col.x, 350, oreKey, col.mat, oreAmount);
+      this.createSmeltButtons(panel, col.x + 120, 300, oreKey, barKey, col.mat, oreAmount);
     });
 
 
@@ -337,11 +337,10 @@ export class SmithingScene extends Phaser.Scene {
     this.saveProgress();
   }
 
-  createSmeltButtons(panel, x, y, oreKey, matName, oreAmount) {
+  createSmeltButtons(panel, x, y, oreKey, barKey, matName, oreAmount) {
     const amounts = [1, 5, 10, oreAmount];
     const labels = ["1", "5", "10", "All"];
 
-    let offset = 0;
 
     amounts.forEach((amt, i) => {
       const disabled = oreAmount < amt;
@@ -357,7 +356,7 @@ export class SmithingScene extends Phaser.Scene {
         38,
         disabled
       );
-      offset += 40;
+      y+= 50
     });
   }
 
