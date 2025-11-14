@@ -166,7 +166,6 @@ export class SmithingScene extends Phaser.Scene {
     container.setDepth(9999);
     return container;
   }
-
   closePanel() {
     if (!this.activePanel) return;
     // destroy everything in the container, then the container
