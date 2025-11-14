@@ -1054,13 +1054,6 @@ export function startGame(user) {
     type: Phaser.WEBGL,
     width: sizes.width,
     height: sizes.height,
-    scale: {
-      mode: Phaser.Scale.FIT,
-      autoCenter: Phaser.Scale.CENTER_BOTH,
-      width: sizes.width,
-      height: sizes.height,
-      expandParent: true,
-    },
     debug: true,
     parent: "gameContainer",
     scene: [MainScene, ShopScene, MiningScene, SmithingScene],
