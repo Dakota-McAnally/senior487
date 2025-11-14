@@ -587,7 +587,7 @@ export function startGame(user) {
       updateInventoryUI(this)
       this.showCoinText(coin.x, coin.y, `+${coinsGained} Coin${coinsGained > 1 ? 's' : ''}`, "#ffffff") //Coin${coinsGained > 1 ? 's' : ''}` Determine if coins are plural or singular (1 coin or 2 coin(s))
 
-      //save progress (coins)
+      //save progress
       fetch(`${API_BASE}/saveProgress`, {
         method: "POST",
         headers: { "Content-Type": "application/json",

@@ -304,7 +304,6 @@ function requireAuth(req, res, next) {
 // ------------------------
 app.post("/saveProgress", requireAuth, async (req, res) => {
   console.log("SAVE RECEIVED:", JSON.stringify(req.body, null, 2))
-  const username = req.user.username;
   const userId = req.user.id;
   const { stats, inventory } = req.body;
 
@@ -343,16 +342,6 @@ app.post("/saveProgress", requireAuth, async (req, res) => {
   stats.pickaxeTier = safeStats.pickaxeTier;
 
   try {
-    const userRes = await dbQuery(`SELECT id FROM users WHERE username = $1`, [
-      username,
-    ]);
-
-    if (userRes.rows.length === 0) {
-      return res.status(400).json({ error: "User not found" });
-    }
-
-    const userId = userRes.rows[0].id;
-
     const {
       combatLevel,
       combatXP,
