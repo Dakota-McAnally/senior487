@@ -75,6 +75,7 @@ export class SmithingScene extends Phaser.Scene {
 
   create() {
     showUI(this.scene.key);
+    this.events.once("shutdown", this.onShutdown, this);
 
     // Background
     const bg = this.add.image(0, 0, "smithingBg").setOrigin(0, 0);
@@ -176,7 +177,18 @@ export class SmithingScene extends Phaser.Scene {
     // re-enables furnace/anvil interactions
     this.enableSceneInteractive();
   }
+  //fixes scene changes not allowing players to reopen anvil/forge panels
+  onShutdown() {
+    if(this.activePanel) {
+    // destroy everything in the container, then the container
+    this.activePanel.removeAll(true);
+    this.activePanel.destroy();
+    this.activePanel = null;
 
+    // re-enables furnace/anvil interactions
+    this.enableSceneInteractive();
+    }
+  }
   addButton(container, x, y, label, onClick, w = 180, h = 40, disabled = false) {
     const rect = this.add.rectangle(x, y, w, h, disabled ? 0x888888 : 0xffff66, disabled ? 0.6 : 0.9)
       .setStrokeStyle(2, 0x000000)
