@@ -184,9 +184,6 @@ export class SmithingScene extends Phaser.Scene {
     this.activePanel.removeAll(true);
     this.activePanel.destroy();
     this.activePanel = null;
-
-    // re-enables furnace/anvil interactions
-    this.enableSceneInteractive();
     }
   }
   addButton(container, x, y, label, onClick, w = 180, h = 40, disabled = false) {
