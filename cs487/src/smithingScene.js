@@ -308,14 +308,7 @@ export class SmithingScene extends Phaser.Scene {
 
       row.add([oreIcon, oreAmt, arrow, barIcon, barAmt]);
 
-      this.addButton(panel, col.x, 350, "Smelt All", () => {
-        if (oreAmount <= 0) {
-          return this.toast(`No ${col.mat} ore to smelt.`, "#ffcccc");
-        }
-        this.smelt(oreKey, barKey, col.mat, oreAmount);
-        oreAmt.setText(this.player.inventory[oreKey]);
-        barAmt.setText(this.player.inventory[barKey]);
-      }, 160, 42);
+      this.createSmeltButtons(panel, col.x, 350, oreKey, col.mat, oreAmount);
     });
 
 
@@ -342,6 +335,28 @@ export class SmithingScene extends Phaser.Scene {
     updateInventoryUI(this);
     this.toast(`Smelted ${barsMade} ${matName} bar${barsMade !== 1 ? 's' : ''}!`);
     this.saveProgress();
+  }
+
+  createSmeltButtons(panel, x, y, oreKey, matName, oreAmount) {
+    const amounts = [1, 5, 10, oreAmount];
+    const labels = ["1", "5", "10", "All"];
+
+    let offset = -135;
+
+    amounts.forEach((amt, i) => {
+      const disabled = oreAmount < amt;
+      this.addButton(
+        panel,
+        x + offset,
+        y,
+        labels[i],
+        () => {
+          this.smelt(oreKey, barKey, matName, amt);
+        },
+        60, 40, disabled
+      );
+      offset += 90;
+    });
   }
 
   // anvil panel
