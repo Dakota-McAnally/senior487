@@ -290,7 +290,7 @@ export function startGame(user) {
       const result = addXP(this.scene.player, "combat", this.xpReward, this.scene, this.scene.combatXPBar.update.bind(this.scene.combatXPBar), MONSTERS)
       if (result.leveledUp && result.unlocked) {
         console.log(`Unlocked new monster: ${result.unlocked}`)
-        this.spawnNewMonster(result.unlocked)
+        this.killEnemy();
       }
       this.scene.combatXPBar.update(this.scene.player)
       this.scene.coinDrop(this.container.x, this.container.y)
@@ -520,19 +520,19 @@ export function startGame(user) {
         }
       })
     }
-    spawnNewMonster(monsterName) {
-      // Remove old enemies
-      this.enemies.forEach(e => e.container.destroy())
-      this.enemies = []
+    // spawnNewMonster(monsterName) {
+    //   // Remove old enemies
+    //   this.enemies.forEach(e => e.container.destroy())
+    //   this.enemies = []
 
-      const monsterData = this.monsters.find(m => m.name === monsterName)
-      if (!monsterData) return
+    //   const monsterData = this.monsters.find(m => m.name === monsterName)
+    //   if (!monsterData) return
 
-      const newEnemy = new Enemy(this, 464, 400, monsterData.texture,
-        monsterData.maxHealth, monsterData.xpReward)
-      this.enemies.push(newEnemy)
-      console.log(`${monsterName} spawned!`)
-    }
+    //   const newEnemy = new Enemy(this, 464, 400, monsterData.texture,
+    //     monsterData.maxHealth, monsterData.xpReward)
+    //   this.enemies.push(newEnemy)
+    //   console.log(`${monsterName} spawned!`)
+    // }
     //retrieves current monster type (Depends on players combat lvl)
     getCurrentMonsterType() {
       const level = this.player.skills.combat.level

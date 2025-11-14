@@ -65,7 +65,6 @@ authForm.addEventListener("submit", async (e) => {
       showAuthMessage(result.error, "error");
     } else {
       showAuthMessage("Sign up successful! Please log in.", "success");
-      setTimeout(() => startGame(user), 500);
     }
   }
 });
