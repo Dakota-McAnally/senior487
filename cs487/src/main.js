@@ -589,7 +589,9 @@ export function startGame(user) {
       //save progress (coins)
       fetch(`${API_BASE}/saveProgress`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
         body: JSON.stringify({
           username: this.player.username,
           stats: {

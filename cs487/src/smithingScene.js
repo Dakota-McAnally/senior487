@@ -234,6 +234,7 @@ export class SmithingScene extends Phaser.Scene {
   // smelting interface
   openSmeltingPanel() {
     const panel = this.makePanel(880, 380);
+    this.currentPanelType = "smelt";
     if (!panel) {
       this.toast("Close the current panel first.", "#ffcccc");
       return;
@@ -334,6 +335,7 @@ export class SmithingScene extends Phaser.Scene {
     updateInventoryUI(this);
     this.toast(`Smelted ${barsMade} ${matName} bar${barsMade !== 1 ? 's' : ''}!`);
     this.saveProgress();
+    this.refreshPanel();
   }
 
   createSmeltButtons(panel, x, y, oreKey, barKey, matName, oreAmount) {
@@ -362,6 +364,7 @@ export class SmithingScene extends Phaser.Scene {
   // anvil panel
   openAnvilPanel() {
     const panel = this.makePanel(880, 470);
+    this.currentPanelType = "anvil";
     if (!panel) {
       this.toast("Close the current panel first.", "#ffcccc");
       return;
@@ -468,7 +471,20 @@ export class SmithingScene extends Phaser.Scene {
     makeToolBlock("Sword", "sword");
     makeToolBlock("Pickaxe", "pickaxe");
   } 
+  refreshPanel() {
+    if (!this.currentPanelType) {
+      return;
+    }
+    this.closePanel();
 
+    if(this.currentPanelType === "smelt") {
+      this.openSmeltingPanel();
+    }
+    else if(this.currentPanelType === "anvil") {
+      this.openAnvilPanel();
+    }
+    }
+  }
   // database save function
   saveProgress() {
     fetch(`${API_BASE}/saveProgress`, {

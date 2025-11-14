@@ -55,6 +55,7 @@ authForm.addEventListener("submit", async (e) => {
     if (user.error) {
       showAuthMessage(user.error, "error");
     } else {
+      localStorage.setItem("token", user.token);
       showAuthMessage("Login successful! Loading game...", "success");
       setTimeout(() => startGame(user), 500);
     }
