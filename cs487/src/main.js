@@ -317,7 +317,7 @@ export function startGame(user) {
       if (index > -1) {
         this.scene.enemies.splice(index, 1)
       }
-      this.scene.time.delayedCall(2000, () => {
+      this.scene.time.delayedCall(500, () => {
         const monster = this.scene.getCurrentMonsterType()
         const newEnemy = new Enemy(
           this.scene,
@@ -637,7 +637,7 @@ export function startGame(user) {
         this.coins.add(coin)
 
         //automatically pick up coins after set time
-        this.time.delayedCall(8500, () => {
+        this.time.delayedCall(5500, () => {
           if (coin.active) {
             this.pickupCoin(coin)
           }

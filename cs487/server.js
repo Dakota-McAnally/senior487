@@ -1,279 +1,10 @@
-// import express from "express";
-// import sqlite3 from "sqlite3";
-// import bcrypt from "bcrypt";
-// import cors from "cors";
-
-// const app = express();
-// app.use(cors()); //allow browser on :5173 to make requetst to :3001 (vite runs on 5173, node on 3001)
-// app.use(express.json());
-
-// const db = new sqlite3.Database("./gameDatabase.db");
-// //TODO: DATABASE SHOULDNT STORE COST AND MULTIPLIER --> ONLY STORE THE LEVEL PER USER
-// //TODO: Coins moved to items table (after items is created), since coins are used in crafting
-
-// //users table
-// db.run(`CREATE TABLE IF NOT EXISTS users (
-//     id INTEGER PRIMARY KEY AUTOINCREMENT,
-//     username TEXT UNIQUE NOT NULL,
-//     password_hash TEXT NOT NULL
-// )`);
-// //user_stats table
-// db.run(`CREATE TABLE IF NOT EXISTS user_stats (
-//     user_id INTEGER PRIMARY KEY,
-//     combatLevel INTEGER DEFAULT 1,
-//     combatXP INTEGER DEFAULT 0,
-//     coinMultLevel INTEGER DEFAULT 0,
-//     dpsMultLevel INTEGER DEFAULT 0,
-//     clickMultLevel INTEGER DEFAULT 0,
-//     miningLevel INTEGER DEFAULT 1,
-//     miningXP INTEGER DEFAULT 0,
-//     oreMultLevel INTEGER DEFAULT 0,
-//     oreDpsMultLevel INTEGER DEFAULT 0,
-//     oreClickMultLevel INTEGER DEFAULT 0,
-//     smithingLevel INTEGER DEFAULT 1,
-//     smithingXP INTEGER DEFAULT 0,
-//     swordTier INTEGER DEFAULT 1,
-//     pickaxeTier INTEGER DEFAULT 1,
-//     FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
-// )`);
-// //items table
-// db.run(`CREATE TABLE IF NOT EXISTS items (
-//     item_id INTEGER PRIMARY KEY AUTOINCREMENT,
-//     name TEXT NOT NULL,
-//     type TEXT,
-//     description TEXT,
-//     tier INTEGER DEFAULT 1
-// )`);
-// //user_inventory table
-// db.run(`CREATE TABLE IF NOT EXISTS user_inventory (
-//     id INTEGER PRIMARY KEY AUTOINCREMENT,
-//     user_id INTEGER NOT NULL,
-//     item_id INTEGER NOT NULL,
-//     quantity INTEGER DEFAULT 1,
-//     equipped BOOLEAN DEFAULT 0,
-//     FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
-//     FOREIGN KEY(item_id) REFERENCES items(item_id) ON DELETE CASCADE
-
-// )`);
-
-// const REQUIRED_ITEMS = ["Coin", "Copper Bar", "Iron Bar", "Gold Bar", "Copper Ore", "Iron Ore", "Gold Ore", "Pickaxe", "Sword"];
-
-// function ensureBaseItemsExist() {
-//     REQUIRED_ITEMS.forEach((itemName) => {
-//         db.get(`SELECT item_id FROM items WHERE name = ?`, [itemName], (err, row) => {
-//             if (err) {
-//                 console.error("Error checking item:", itemName, err);
-//                 return;
-//             }
-//             if (!row) {
-//                 db.run(`INSERT INTO items (name) VALUES (?)`, [itemName], (insertErr) => {
-//                     if (insertErr) {
-//                         console.error("Failed to insert missing item:", itemName, insertErr);
-//                     } else {
-//                         console.log(`Inserted missing item: ${itemName}`);
-//                     }
-//                 });
-//             }
-//         });
-//     });
-// }
-// setTimeout(ensureBaseItemsExist, 200);
-
-// //Signup
-// app.post("/signup", async (req, res) => {
-//     const { username, password } = req.body;
-//     const hash = await bcrypt.hash(password, 10);
-
-//     db.run(
-//         `INSERT INTO users (username, password_hash) VALUES (?, ?)`,
-//         [username, hash],
-//         function (err) {
-//             if (err)
-//                 return res.status(400).json({ error: "Invalid username! Already taken." });
-
-//             const userId = this.lastID;
-
-//             db.run(`INSERT INTO user_stats (user_id) VALUES (?)`, [userId], (err2) => {
-//                 if (err2)
-//                     console.error("Error creating default user stats: ", err2);
-//             });
-//           db.all(`SELECT item_id, name FROM items`, (err, rows) => {
-//             if (err) return;
-
-//             rows.forEach(item => {
-//               db.run(
-//                 `INSERT INTO user_inventory (user_id, item_id, quantity)
-//        VALUES (?, ?, 0)`,
-//                 [userId, item.item_id],
-//                 (err2) => {
-//                   if (err2) console.error("Failed to insert base inventory row:", item.name, err2);
-//                 }
-//               );
-//             });
-//           });
-//           res.json({ success: true, userId });
-
-//         }
-//     );
-// });
-
-// //Login
-// app.post("/login", (req, res) => {
-//   const { username, password } = req.body;
-
-//   db.get(`SELECT * FROM users WHERE username = ?`, [username], async (err, userRow) => {
-//     if (err) return res.status(500).json({ error: "Database error" });
-//     if (!userRow) return res.status(400).json({ error: "Invalid Username" });
-
-//     const match = await bcrypt.compare(password, userRow.password_hash);
-//     if (!match) return res.status(400).json({ error: "Invalid Password" });
-
-//     db.get(`SELECT * FROM user_stats WHERE user_id = ?`, [userRow.id], (err2, stats) => {
-//       if (err2 || !stats) return res.status(500).json({ error: "Stats not found" });
-
-//       db.all(
-//         `SELECT i.name, ui.quantity FROM user_inventory ui
-//          JOIN items i ON i.item_id = ui.item_id
-//          WHERE ui.user_id = ?`,
-//         [userRow.id],
-//         (err3, rows) => {
-//           if (err3) return res.status(500).json({ error: "Failed to load inventory" });
-
-//           // Convert DB item names (e.g. "Copper Ore") -> camelCase (e.g. copperOre)
-//           const toCamel = (str) =>
-//             str.replace(/\s(.)/g, (m) => m.toUpperCase())
-//                .replace(/\s/g, "")
-//                .replace(/^./, (m) => m.toLowerCase());
-
-//           const inventory = {};
-//           rows.forEach(r => {
-//             inventory[toCamel(r.name)] = r.quantity;
-//           });
-
-//           res.json({
-//             success: true,
-//             username: userRow.username,
-//             userId: userRow.id,
-//             stats,
-//             inventory
-//           });
-//         }
-//       );
-//     });
-//   });
-// });
-
-
-// // SAVE PROGRESS 
-// app.post("/saveProgress", (req, res) => {
-//   const { username, stats, inventory } = req.body;
-
-//   db.get(`SELECT id FROM users WHERE username = ?`, [username], (err, user) => {
-//     if (err || !user) return res.status(400).json({ error: "User not found" });
-
-//     const {
-//       combatLevel, combatXP, coinMultLevel, dpsMultLevel, clickMultLevel,
-//       miningLevel, miningXP, oreMultLevel, oreDpsMultLevel, oreClickMultLevel,
-//       smithingLevel, smithingXP, swordTier, pickaxeTier
-//     } = stats;
-
-//     db.run(
-//       `UPDATE user_stats
-//        SET combatLevel=?, combatXP=?, coinMultLevel=?, dpsMultLevel=?, clickMultLevel=?,
-//            miningLevel=?, miningXP=?, oreMultLevel=?, oreDpsMultLevel=?, oreClickMultLevel=?,
-//            smithingLevel=?, smithingXP=?, swordTier=?, pickaxeTier=?
-//        WHERE user_id=?`,
-//       [
-//         combatLevel ?? 1, combatXP ?? 0, coinMultLevel ?? 0, dpsMultLevel ?? 0, clickMultLevel ?? 0,
-//         miningLevel ?? 1, miningXP ?? 0, oreMultLevel ?? 0, oreDpsMultLevel ?? 0, oreClickMultLevel ?? 0,
-//         smithingLevel ?? 1, smithingXP ?? 0, swordTier ?? 1, pickaxeTier ?? 1,
-//         user.id
-//       ],
-//       (err2) => {
-//         if (err2) {
-//           console.error("Stats update error:", err2);
-//           return res.status(500).json({ error: "Failed to update stats" });
-//         }
-
-//         // ITEM MAPPING (camelCase -> DB names)
-//         const itemMap = {
-//           coins: "Coin",
-//           copperOre: "Copper Ore",
-//           ironOre: "Iron Ore",
-//           goldOre: "Gold Ore",
-//           copperBar: "Copper Bar",
-//           ironBar: "Iron Bar",
-//           goldBar: "Gold Bar",
-//           pickaxe: "Pickaxe",
-//           sword: "Sword"
-//         };
-
-//         const items = Object.entries(inventory || {});
-//         const processItem = (index = 0) => {
-//           if (index >= items.length) return res.json({ success: true });
-
-//           const [key, quantity] = items[index];
-//           const dbName = itemMap[key];
-//           if (!dbName) {
-//             console.warn(`Skipping unmapped item: ${key}`);
-//             return processItem(index + 1);
-//           }
-
-//           db.get(`SELECT item_id FROM items WHERE name = ?`, [dbName], (err3, itemRow) => {
-//             if (err3 || !itemRow) {
-//               console.error(`Item lookup failed for ${dbName}:`, err3);
-//               return processItem(index + 1);
-//             }
-
-//             db.get(
-//               `SELECT id FROM user_inventory WHERE user_id=? AND item_id=?`,
-//               [user.id, itemRow.item_id],
-//               (err4, invRow) => {
-//                 if (err4) {
-//                   console.error(`Inventory lookup failed for ${dbName}:`, err4);
-//                   return processItem(index + 1);
-//                 }
-
-//                 if (invRow) {
-//                   db.run(
-//                     `UPDATE user_inventory SET quantity=? WHERE id=?`,
-//                     [quantity, invRow.id],
-//                     (err5) => {
-//                       if (err5) console.error(`Failed to update ${dbName}:`, err5);
-//                       processItem(index + 1);
-//                     }
-//                   );
-//                 } else {
-//                   db.run(
-//                     `INSERT INTO user_inventory (user_id, item_id, quantity) VALUES (?, ?, ?)`,
-//                     [user.id, itemRow.item_id, quantity],
-//                     (err6) => {
-//                       if (err6) console.error(`Failed to insert ${dbName}:`, err6);
-//                       processItem(index + 1);
-//                     }
-//                   );
-//                 }
-//               }
-//             );
-//           });
-//         };
-//         processItem();
-//       }
-//     );
-//   });
-// });
-
-// app.listen(3001, () => {
-//     console.log("Server running on port 3001")
-// })
-
-
 import express from "express";
 import bcrypt from "bcrypt";
 import cors from "cors";
 import dotenv from "dotenv";
 import pkg from "pg";
 import path from "path";
+import jwt from "jsonwebtoken";
 import { fileURLToPath } from "url";
 
 
@@ -418,6 +149,13 @@ function mapStats(row) {
     pickaxeTier: row.pickaxetier
   };
 }
+function clamp(num, min, max) {
+  num = Number(num);
+  if (isNaN(num)){
+    return min;
+  } 
+  return Math.max(min, Math.min(max, num));
+}
 
 // ------------------------
 // SIGNUP
@@ -527,9 +265,14 @@ app.post("/login", async (req, res) => {
     invRes.rows.forEach((r) => {
       inventory[toCamel(r.name)] = r.quantity;
     });
-
+    const token = jwt.sign(
+      { id: userRow.id, username: userRow.username },
+      process.env.JWT_SECRET,
+      { expiresIn: "30d" }
+    )
     res.json({
       success: true,
+      token,
       username: userRow.username,
       userId: userRow.id,
       stats: statsCamelCase,
@@ -541,12 +284,63 @@ app.post("/login", async (req, res) => {
   }
 });
 
+function requireAuth(req, res, next) {
+  const header = req.headers.authorization;
+  if (!header) {
+    return res.status(401).json({ error: "Missing token" });
+  }
+  const token = header.split(" ")[1];
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = decoded;
+      next();
+    } catch (err) {
+      return res.status(403).json({ error: "Invalid or expired token" });
+    }
+}
+
 // ------------------------
 // SAVE PROGRESS
 // ------------------------
-app.post("/saveProgress", async (req, res) => {
+app.post("/saveProgress", requireAuth, async (req, res) => {
   console.log("SAVE RECEIVED:", JSON.stringify(req.body, null, 2))
-  const { username, stats, inventory } = req.body;
+  const username = req.user.username;
+  const userId = req.user.id;
+  const { stats, inventory } = req.body;
+
+  const safeStats = {
+    combatLevel: clamp(stats.combatLevel, 1, 99),
+    combatXP: clamp(stats.combatXP, 0, 999999999),
+    coinMultLevel: clamp(stats.coinMultLevel, 0, 50),
+    dpsMultLevel: clamp(stats.dpsMultLevel, 0, 50),
+    clickMultLevel: clamp(stats.clickMultLevel, 0, 50),
+    miningLevel: clamp(stats.miningLevel, 1, 99),
+    miningXP: clamp(stats.miningXP, 0, 999999999),
+    oreMultLevel: clamp(stats.oreMultLevel, 0, 50),
+    oreDpsMultLevel: clamp(stats.oreDpsMultLevel, 0, 50),
+    oreClickMultLevel: clamp(stats.oreClickMultLevel, 0, 50),
+    smithingLevel: clamp(stats.smithingLevel, 1, 99),
+    smithingXP: clamp(stats.smithingXP, 0, 999999999),
+
+    // prevent tiers going above the current limit (game crashes otherwise)
+    swordTier: clamp(stats.swordTier, 1, 5),
+    pickaxeTier: clamp(stats.pickaxeTier, 1, 5),
+  };
+  // Overwrite stats with safe values
+  stats.combatLevel = safeStats.combatLevel;
+  stats.combatXP = safeStats.combatXP;
+  stats.coinMultLevel = safeStats.coinMultLevel;
+  stats.dpsMultLevel = safeStats.dpsMultLevel;
+  stats.clickMultLevel = safeStats.clickMultLevel;
+  stats.miningLevel = safeStats.miningLevel;
+  stats.miningXP = safeStats.miningXP;
+  stats.oreMultLevel = safeStats.oreMultLevel;
+  stats.oreDpsMultLevel = safeStats.oreDpsMultLevel;
+  stats.oreClickMultLevel = safeStats.oreClickMultLevel;
+  stats.smithingLevel = safeStats.smithingLevel;
+  stats.smithingXP = safeStats.smithingXP;
+  stats.swordTier = safeStats.swordTier;
+  stats.pickaxeTier = safeStats.pickaxeTier;
 
   try {
     const userRes = await dbQuery(`SELECT id FROM users WHERE username = $1`, [
@@ -624,7 +418,9 @@ app.post("/saveProgress", async (req, res) => {
       pickaxe: "Pickaxe",
       sword: "Sword",
     };
-
+    for (const key in inventory) {
+      inventory[key] = clamp(inventory[key], 0, 999999999);
+    }
     const entries = Object.entries(inventory || {});
 
     for (const [key, quantity] of entries) {
