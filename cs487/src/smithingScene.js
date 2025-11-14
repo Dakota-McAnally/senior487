@@ -341,7 +341,7 @@ export class SmithingScene extends Phaser.Scene {
     const amounts = [1, 5, 10, oreAmount];
     const labels = ["1", "5", "10", "All"];
 
-    let offset = -135;
+    let offset = 0;
 
     amounts.forEach((amt, i) => {
       const disabled = oreAmount < amt;
@@ -353,9 +353,11 @@ export class SmithingScene extends Phaser.Scene {
         () => {
           this.smelt(oreKey, barKey, matName, amt);
         },
-        60, 40, disabled
+        100,
+        38,
+        disabled
       );
-      offset += 90;
+      offset += 40;
     });
   }
 
