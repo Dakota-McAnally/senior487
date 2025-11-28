@@ -5,7 +5,7 @@ import { showUI, setupGlobalButtons } from './utils/uiManager.js'
 import { MiningScene } from './miningScene.js'
 import { ShopScene } from './shopScene.js'
 import { SmithingScene } from './smithingScene.js'
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3001"
+const API_BASE = import.meta.env.local.VITE_API_BASE || ""
 
 //global functions (multiple scenes can/will use)
 export function getUpgradeCost(baseCost, level) {
