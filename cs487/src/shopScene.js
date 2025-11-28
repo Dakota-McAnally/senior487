@@ -3,7 +3,7 @@ import Phaser from "phaser";
 import { showUI } from "./utils/uiManager.js";
 import { updateInventoryUI, recomputeAllUpgradeCosts, getUpgradeCost } from "./main.js";
 
-const API_BASE = import.meta.env.VITE_API_BASE || ""
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3001";
 
 // compact number format
 function fmt(n) {

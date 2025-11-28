@@ -7,7 +7,7 @@ const toggleText = document.getElementById("toggleText")
 const authMessage = document.getElementById("authMessage")
 
 
-const API_BASE = import.meta.env.VITE_API_BASE || ""
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3001";
 
 let isLogin = true;
 

@@ -4,7 +4,7 @@ import { updateInventoryUI, getUpgradeCost, recomputeAllUpgradeCosts, getToolSta
 import { showUI, setupGlobalButtons } from './utils/uiManager.js'
 
 
-const API_BASE = import.meta.env.VITE_API_BASE || ""
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3001"
 
 const ORES = [
     {

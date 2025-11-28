@@ -9,7 +9,6 @@ import { fileURLToPath } from "url";
 
 
 dotenv.config();
-console.log("DATABASE_URL →", process.env.DATABASE_URL);
 
 const { Pool } = pkg;
 
