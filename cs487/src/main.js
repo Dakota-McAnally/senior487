@@ -1068,8 +1068,10 @@ export function startGame(user) {
     scale: {
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH,
+      width: sizes.width,
+      height: sizes.height,
     },
-    canvasStyle: "position: absolute; top: 0 left: 0; z-index: 0;"
+    canvasStyle: "position: absolute; top: 0; left: 0; z-index: 0;"
   }
 
   const game = new Phaser.Game(config)
