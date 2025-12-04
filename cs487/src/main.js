@@ -119,24 +119,24 @@ export function startGame(user) {
       unlockLevel: 0,
       texture: "wasp",
       baseHealth: 200,
-      xpReward: 25,
-      coinMultiplier: 1.0,
+      xpReward: 40,
+      coinMultiplier: 2.0,
     },
     {
       name: "goblin",
       unlockLevel: 5,
       texture: "goblin",
       baseHealth: 400,
-      xpReward: 40,
-      coinMultiplier: 2,
+      xpReward: 64,
+      coinMultiplier: 3.0,
     },
     {
       name: "skeleton",
       unlockLevel: 10,
       texture: "skeleton",
       baseHealth: 960,
-      xpReward: 64,
-      coinMultiplier: 3,
+      xpReward: 96,
+      coinMultiplier: 4.0,
     }
   ]
   class Enemy {
@@ -626,7 +626,7 @@ export function startGame(user) {
 
     //drop coins from monster, with variance
     coinDrop(x, y) {
-      const coinsDropped = Phaser.Math.Between(3, 7)
+      const coinsDropped = Phaser.Math.Between(4, 7)
 
       for (let i = 0; i < coinsDropped; i++) {
         const xOffset = Phaser.Math.Between(-20, 20)

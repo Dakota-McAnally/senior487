@@ -13,7 +13,7 @@ const ORES = [
         texture: "copperOre",
         nodeHealth: 120,
         xpReward: 25,
-        oreMultiplier: 1.0
+        oreMultiplier: 2.0
     },
     {
         name: "iron",
@@ -21,7 +21,7 @@ const ORES = [
         texture: "ironOre",
         nodeHealth: 290,
         xpReward: 60,
-        oreMultiplier: 2
+        oreMultiplier: 3.0
     },
     {
         name: "gold",
@@ -29,7 +29,7 @@ const ORES = [
         texture: "goldOre",
         nodeHealth: 680,
         xpReward: 120,
-        oreMultiplier: 3
+        oreMultiplier: 4.0
     }
 ]
 
@@ -346,7 +346,7 @@ export class MiningScene extends Phaser.Scene {
         this.createOreIcons()
 
         const oreTypeKey = ore.sprite.texture.key.replace("Ore", "").toLowerCase()
-        const dropQuantity = Phaser.Math.Between(3, 6)
+        const dropQuantity = Phaser.Math.Between(6, 12)
         this.dropOre(ore.container.x, ore.container.y, oreTypeKey, dropQuantity)
 
         ore.container.destroy()
