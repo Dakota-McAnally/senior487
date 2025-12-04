@@ -75,16 +75,16 @@ export function updateInventoryUI(scene) {
 }
 export const TOOL_TIERS = {
   sword: {
-    1: { name: "Wooden Sword", dps: 10, sprite: "wooden_sword_inventory.png" },
-    2: { name: "Copper Sword", dps: 15, sprite: "copper_sword_inventory.png" },
-    3: { name: "Iron Sword", dps: 22.5, sprite: "iron_sword_inventory.png" },
-    4: { name: "Gold Sword", dps: 35, sprite: "gold_sword_inventory.png" },
+    1: { name: "Wooden Sword", dps: 15, sprite: "wooden_sword_inventory.png" },
+    2: { name: "Copper Sword", dps: 22.5, sprite: "copper_sword_inventory.png" },
+    3: { name: "Iron Sword", dps: 35, sprite: "iron_sword_inventory.png" },
+    4: { name: "Gold Sword", dps: 60, sprite: "gold_sword_inventory.png" },
   },
   pickaxe: {
-    1: { name: "Wooden Pickaxe", miningPower: 10, sprite: "wooden_pickaxe_inventory.png" },
-    2: { name: "Copper Pickaxe", miningPower: 15, sprite: "copper_pickaxe_inventory.png" },
-    3: { name: "Iron Pickaxe", miningPower: 22.5, sprite: "iron_pickaxe_inventory.png" },
-    4: { name: "Gold Pickaxe", miningPower: 35, sprite: "gold_pickaxe_inventory.png" },
+    1: { name: "Wooden Pickaxe", miningPower: 15, sprite: "wooden_pickaxe_inventory.png" },
+    2: { name: "Copper Pickaxe", miningPower: 22.5, sprite: "copper_pickaxe_inventory.png" },
+    3: { name: "Iron Pickaxe", miningPower: 35, sprite: "iron_pickaxe_inventory.png" },
+    4: { name: "Gold Pickaxe", miningPower: 60, sprite: "gold_pickaxe_inventory.png" },
   }
 }
 export function getToolStats(player, type) {
