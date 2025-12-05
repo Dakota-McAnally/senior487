@@ -368,7 +368,7 @@ export class MiningScene extends Phaser.Scene {
         })
 
         // respawn
-        this.time.delayedCall(2000, () => {
+        this.time.delayedCall(1000, () => {
             const nextOre = ORES.find(o => o.name === this.activeOreName)
             this.activeNode = this.spawnOreNode(nextOre)
         })

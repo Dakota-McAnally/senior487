@@ -119,7 +119,7 @@ export class SmithingScene extends Phaser.Scene {
   makeHint(x, y, text) {
     const t = this.add.text(x, y, text, {
       fontSize: "16px",
-      color: "#000",
+      color: "#ffffffff",
       stroke: "#000",
       strokeThickness: 3
     }).setOrigin(0.5);

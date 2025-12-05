@@ -316,7 +316,7 @@ export function startGame(user) {
       if (index > -1) {
         this.scene.enemies.splice(index, 1)
       }
-      this.scene.time.delayedCall(500, () => {
+      this.scene.time.delayedCall(1000, () => {
         const monster = this.scene.getCurrentMonsterType()
         const newEnemy = new Enemy(
           this.scene,

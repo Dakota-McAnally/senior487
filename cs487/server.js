@@ -98,10 +98,7 @@ async function initDatabase() {
   console.log("Postgres tables initialized");
   await ensureBaseItemsExist();
 }
-
-// ------------------------
 // BASE ITEMS
-// ------------------------
 const REQUIRED_ITEMS = [
   "Coins",
   "Copper Bar",
@@ -156,9 +153,7 @@ function clamp(num, min, max) {
   return Math.max(min, Math.min(max, num));
 }
 
-// ------------------------
 // SIGNUP
-// ------------------------
 app.post("/signup", async (req, res) => {
   const { username, password } = req.body;
 
@@ -210,9 +205,7 @@ app.post("/signup", async (req, res) => {
   }
 });
 
-// ------------------------
 // LOGIN
-// ------------------------
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
@@ -298,9 +291,7 @@ function requireAuth(req, res, next) {
     }
 }
 
-// ------------------------
 // SAVE PROGRESS
-// ------------------------
 app.post("/saveProgress", requireAuth, async (req, res) => {
   console.log("SAVE RECEIVED:", JSON.stringify(req.body, null, 2))
   const userId = req.user.id;
@@ -461,10 +452,7 @@ app.post("/saveProgress", requireAuth, async (req, res) => {
     res.status(500).json({ error: "Failed to save progress" });
   }
 });
-
-// ------------------------
 // START SERVER AFTER DB INIT
-// ------------------------
 const PORT = process.env.PORT || 3001;
 
 const __filename = fileURLToPath(import.meta.url);
