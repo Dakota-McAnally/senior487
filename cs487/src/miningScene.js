@@ -11,7 +11,7 @@ const ORES = [
         name: "copper",
         unlockLevel: 0,
         texture: "copperOre",
-        nodeHealth: 120,
+        nodeHealth: 200,
         xpReward: 25,
         oreMultiplier: 2.0
     },
@@ -19,7 +19,7 @@ const ORES = [
         name: "iron",
         unlockLevel: 5,
         texture: "ironOre",
-        nodeHealth: 290,
+        nodeHealth: 400,
         xpReward: 60,
         oreMultiplier: 3.0
     },
@@ -27,7 +27,7 @@ const ORES = [
         name: "gold",
         unlockLevel: 10,
         texture: "goldOre",
-        nodeHealth: 680,
+        nodeHealth: 960,
         xpReward: 120,
         oreMultiplier: 4.0
     }
@@ -346,7 +346,7 @@ export class MiningScene extends Phaser.Scene {
         this.createOreIcons()
 
         const oreTypeKey = ore.sprite.texture.key.replace("Ore", "").toLowerCase()
-        const dropQuantity = Phaser.Math.Between(6, 12)
+        const dropQuantity = Phaser.Math.Between(4, 7)
         this.dropOre(ore.container.x, ore.container.y, oreTypeKey, dropQuantity)
 
         ore.container.destroy()
@@ -425,7 +425,7 @@ export class MiningScene extends Phaser.Scene {
             gold: "goldOre",
         }
         const itemKey = keyMap[oreType]
-        const baseAmount = 1
+        const baseAmount = 2
         const totalAmount = Math.max(1, Math.floor(baseAmount* (this.player.oreMultiplier || 1)))
         this.player.inventory[itemKey] = (this.player.inventory[itemKey] ?? 0) + totalAmount
         updateInventoryUI(this)
